@@ -116,10 +116,7 @@ public class TajoWriteSupport extends WriteSupport<Tuple> {
         recordConsumer.addBinary(Binary.fromString(datum.asChars()));
         break;
       case PROTOBUF:
-        throw new RuntimeException("Writing PROTOBUF not supported.");
       case BLOB:
-        recordConsumer.addBinary(Binary.fromByteArray(datum.asByteArray()));
-        break;
       case INET4:
       case INET6:
         recordConsumer.addBinary(Binary.fromByteArray(datum.asByteArray()));

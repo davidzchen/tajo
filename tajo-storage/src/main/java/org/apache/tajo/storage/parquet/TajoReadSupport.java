@@ -34,6 +34,7 @@ import org.apache.tajo.storage.Tuple;
 public class TajoReadSupport extends ReadSupport<Tuple> {
   private static final Log LOG = Log.getLog(TajoReadSupport.class);
 
+  private Schema readSchema;
   private Schema requestedSchema;
 
   /**
@@ -47,9 +48,22 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
    * @param requestedSchema The Tajo schema of the requested projection passed
    *        down by ParquetScanner.
    */
-  public TajoReadSupport(Schema requestedSchema) {
+  public TajoReadSupport(Schema readSchema, Schema requestedSchema) {
     super();
+    this.readSchema = readSchema;
     this.requestedSchema = requestedSchema;
+  }
+
+  /**
+   * Class constructor.
+   *
+   * @param requestedSchema The Tajo schema of the requested projection passed
+   *        down by ParquetScanner.
+   */
+  public TajoReadSupport(Schema readSchema) {
+    super();
+    this.readSchema = readSchema;
+    this.requestedSchema = readSchema;
   }
 
   /**
@@ -65,7 +79,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
     }
     MessageType requestedParquetSchema =
       new TajoSchemaConverter().convert(requestedSchema);
-    LOG.debug("Reading data with projection " + requestedParquetSchema);
+    LOG.error("Reading data with projection:\n" + requestedParquetSchema);
     return new ReadContext(requestedParquetSchema);
   }
 
@@ -83,12 +97,16 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
       Map<String, String> keyValueMetaData,
       MessageType fileSchema,
       ReadContext readContext) {
-    String readSchema = keyValueMetaData.get(TAJO_SCHEMA_METADATA_KEY);
-    if (readSchema == null) {
-      throw new RuntimeException("No tajo.schema set in file.");
+    Schema tajoReadSchema = null;
+    String metadataReadSchema = keyValueMetaData.get(TAJO_SCHEMA_METADATA_KEY);
+    if (metadataReadSchema != null) {
+      tajoReadSchema = CatalogGsonHelper.fromJson(
+          metadataReadSchema, Schema.class);
+    } else {
+      tajoReadSchema = readSchema;
     }
-    MessageType requestedSchema = readContext.getRequestedSchema();
-    Schema tajoSchema = CatalogGsonHelper.fromJson(readSchema, Schema.class);
-    return new TajoRecordMaterializer(requestedSchema, tajoSchema);
+    MessageType parquetRequestedSchema = readContext.getRequestedSchema();
+    return new TajoRecordMaterializer(parquetRequestedSchema, requestedSchema,
+                                      tajoReadSchema);
   }
 }

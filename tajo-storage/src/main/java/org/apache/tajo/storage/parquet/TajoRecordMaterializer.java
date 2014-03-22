@@ -23,13 +23,27 @@ import parquet.io.api.RecordMaterializer;
 import parquet.schema.MessageType;
 
 import org.apache.tajo.catalog.Schema;
+import org.apache.tajo.catalog.Column;
 import org.apache.tajo.storage.Tuple;
 
 class TajoRecordMaterializer extends RecordMaterializer<Tuple> {
   private final TajoRecordConverter root;
 
-  public TajoRecordMaterializer(MessageType parquetSchema, Schema schema) {
-    this.root = new TajoRecordConverter(parquetSchema, schema);
+  public TajoRecordMaterializer(MessageType parquetSchema, Schema tajoSchema,
+                                Schema tajoReadSchema) {
+    int[] projectionMap = getProjectionMap(tajoReadSchema, tajoSchema);
+    this.root = new TajoRecordConverter(parquetSchema, tajoReadSchema,
+                                        projectionMap);
+  }
+
+  private int[] getProjectionMap(Schema schema, Schema projection) {
+    Column[] targets = projection.toArray();
+    int[] projectionMap = new int[targets.length];
+    for (int i = 0; i < targets.length; ++i) {
+      int tid = schema.getColumnIdByName(targets[i].getSimpleName());
+      projectionMap[i] = tid;
+    }
+    return projectionMap;
   }
 
   @Override

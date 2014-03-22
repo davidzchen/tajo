@@ -143,6 +143,9 @@ public class TajoSchemaConverter {
     List<Type> types = new ArrayList<Type>();
     for (int i = 0; i < tajoSchema.size(); ++i) {
       Column column = tajoSchema.getColumn(i);
+      if (column.getDataType().getType() == TajoDataTypes.Type.NULL_TYPE) {
+        continue;
+      }
       types.add(convertColumn(column));
     }
     return new MessageType(TABLE_SCHEMA, types);
@@ -151,8 +154,6 @@ public class TajoSchemaConverter {
   private Type convertColumn(Column column) {
     TajoDataTypes.Type type = column.getDataType().getType();
     switch (type) {
-      case NULL_TYPE:
-        return null;
       case BOOLEAN:
         return primitive(column.getSimpleName(),
                          PrimitiveType.PrimitiveTypeName.BOOLEAN);
@@ -176,7 +177,8 @@ public class TajoSchemaConverter {
                          PrimitiveType.PrimitiveTypeName.BINARY,
                          OriginalType.UTF8);
       case PROTOBUF:
-        throw new RuntimeException("Writing PROTOBUF not supported.");
+        return primitive(column.getSimpleName(),
+                         PrimitiveType.PrimitiveTypeName.BINARY);
       case BLOB:
         return primitive(column.getSimpleName(),
                          PrimitiveType.PrimitiveTypeName.BINARY);
@@ -185,7 +187,7 @@ public class TajoSchemaConverter {
         return primitive(column.getSimpleName(),
                          PrimitiveType.PrimitiveTypeName.BINARY);
       default:
-        return null;
+        throw new RuntimeException("Cannot convert Tajo type: " + type);
     }
   }
 

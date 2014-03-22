@@ -18,6 +18,9 @@
 
 package org.apache.tajo.storage.parquet;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import java.nio.ByteBuffer;
 
 import parquet.io.api.GroupConverter;
@@ -35,31 +38,41 @@ import org.apache.tajo.storage.VTuple;
 import org.apache.tajo.datum.DatumFactory;
 import org.apache.tajo.datum.Datum;
 import org.apache.tajo.datum.BlobDatum;
+import org.apache.tajo.datum.NullDatum;
+import org.apache.tajo.datum.ProtobufDatumFactory;
 
 public class TajoRecordConverter extends GroupConverter {
   private final GroupType parquetSchema;
+  private final Schema tajoReadSchema;
+  private final int[] projectionMap;
+  private final int tupleSize;
+  private final int projectionSize;
+
   private final Converter[] converters;
-  private final int schemaSize;
 
   private Tuple currentTuple;
 
-  public TajoRecordConverter(GroupType parquetSchema, Schema tajoSchema) {
+  public TajoRecordConverter(GroupType parquetSchema, Schema tajoReadSchema,
+                             int[] projectionMap) {
     this.parquetSchema = parquetSchema;
-    this.schemaSize = parquetSchema.getFieldCount();
-    if (schemaSize != tajoSchema.size()) {
-      throw new IllegalArgumentException("Schema sizes do not match: " +
-          schemaSize + ", " + tajoSchema.size());
+    this.tajoReadSchema = tajoReadSchema;
+    this.projectionMap = projectionMap;
+    this.tupleSize = tajoReadSchema.size();
+    this.projectionSize = parquetSchema.getFieldCount();
+    if (projectionMap.length != projectionSize) {
+      throw new IllegalArgumentException("Projection sizes do not match: " +
+          projectionSize + ", " + projectionMap.length);
     }
 
-    this.converters = new Converter[schemaSize];
-    for (int i = 0; i < schemaSize; ++i) {
-      Column column = tajoSchema.getColumn(i);
+    this.converters = new Converter[projectionSize];
+    for (int i = 0; i < projectionSize; ++i) {
+      final int projectionIndex = projectionMap[i];
+      Column column = tajoReadSchema.getColumn(projectionIndex);
       Type type = parquetSchema.getType(i);
-      final int index = i;
       converters[i] = newConverter(column, type, new ParentValueContainer() {
         @Override
         void add(Object value) {
-          TajoRecordConverter.this.set(index, value);
+          TajoRecordConverter.this.set(projectionIndex, value);
         }
       });
     }
@@ -91,14 +104,16 @@ public class TajoRecordConverter extends GroupConverter {
         return new FieldFloat8Converter(parent);
       case INET4:
         return new FieldInet4Converter(parent);
+      case INET6:
+        throw new RuntimeException("No converter for INET6");
       case TEXT:
         return new FieldTextConverter(parent);
       case PROTOBUF:
-        throw new RuntimeException("No Converter implemented for PROTOBUF.");
+        return new FieldProtobufConverter(parent, dataType);
       case BLOB:
         return new FieldBlobConverter(parent);
       case NULL_TYPE:
-        throw new RuntimeException("No Converter implemented for NULL_TYPE.");
+        throw new RuntimeException("No converter for NULL_TYPE.");
       default:
         throw new RuntimeException("Unsupported data type");
     }
@@ -111,7 +126,7 @@ public class TajoRecordConverter extends GroupConverter {
 
   @Override
   public void start() {
-    currentTuple = new VTuple(schemaSize);
+    currentTuple = new VTuple(tupleSize);
   }
 
   @Override
@@ -125,6 +140,8 @@ public class TajoRecordConverter extends GroupConverter {
   static abstract class ParentValueContainer {
     /**
      * Adds the value to the parent.
+     *
+     * @param value The value to add.
      */
     abstract void add(Object value);
   }
@@ -299,6 +316,30 @@ public class TajoRecordConverter extends GroupConverter {
     @Override
     final public void addBinary(Binary value) {
       parent.add(new BlobDatum(ByteBuffer.wrap(value.getBytes())));
+    }
+  }
+
+  static final class FieldProtobufConverter extends PrimitiveConverter {
+    private final ParentValueContainer parent;
+    private final DataType dataType;
+
+    public FieldProtobufConverter(ParentValueContainer parent,
+                                  DataType dataType) {
+      this.parent = parent;
+      this.dataType = dataType;
+    }
+
+    @Override
+    final public void addBinary(Binary value) {
+      try {
+        ProtobufDatumFactory factory =
+            ProtobufDatumFactory.get(dataType.getCode());
+        Message.Builder builder = factory.newBuilder();
+        builder.mergeFrom(value.getBytes());
+        parent.add(factory.createDatum(builder));
+      } catch (InvalidProtocolBufferException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

@@ -153,7 +153,7 @@ public class TestMergeScanner {
     scanner.init();
     int totalCounts = 0;
     Tuple tuple;
-    while ((tuple=scanner.next()) != null) {
+    while ((tuple = scanner.next()) != null) {
       totalCounts++;
       if (isProjectableStorage(meta.getStoreType())) {
         assertNotNull(tuple.get(0));

@@ -32,13 +32,26 @@ import parquet.hadoop.api.ReadSupport;
  * Read Tajo records from a Parquet file
  */
 public class TajoParquetReader extends ParquetReader<Tuple> {
-  public TajoParquetReader(Path file, Schema requestedSchema) throws IOException {
-    super(file, new TajoReadSupport(requestedSchema));
+  public TajoParquetReader(Path file, Schema readSchema) throws IOException {
+    super(file, new TajoReadSupport(readSchema));
   }
 
-  public TajoParquetReader(Path file, Schema requestedSchema,
+  public TajoParquetReader(Path file, Schema readSchema,
+                           Schema requestedSchema) throws IOException {
+    super(file, new TajoReadSupport(readSchema, requestedSchema));
+  }
+
+  public TajoParquetReader(Path file, Schema readSchema,
+                           Schema requestedSchema,
                            UnboundRecordFilter recordFilter)
       throws IOException {
-    super(file, new TajoReadSupport(requestedSchema), recordFilter);
+    super(file, new TajoReadSupport(readSchema, requestedSchema),
+          recordFilter);
+  }
+
+  public TajoParquetReader(Path file, Schema readSchema,
+                           UnboundRecordFilter recordFilter)
+      throws IOException {
+    super(file, new TajoReadSupport(readSchema), recordFilter);
   }
 }
