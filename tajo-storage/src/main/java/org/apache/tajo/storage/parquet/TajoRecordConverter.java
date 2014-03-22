@@ -30,6 +30,7 @@ import parquet.io.api.Binary;
 import parquet.schema.Type;
 import parquet.schema.GroupType;
 
+import org.apache.tajo.common.TajoDataTypes;
 import org.apache.tajo.common.TajoDataTypes.DataType;
 import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.Column;
@@ -46,7 +47,6 @@ public class TajoRecordConverter extends GroupConverter {
   private final Schema tajoReadSchema;
   private final int[] projectionMap;
   private final int tupleSize;
-  private final int projectionSize;
 
   private final Converter[] converters;
 
@@ -58,28 +58,32 @@ public class TajoRecordConverter extends GroupConverter {
     this.tajoReadSchema = tajoReadSchema;
     this.projectionMap = projectionMap;
     this.tupleSize = tajoReadSchema.size();
-    this.projectionSize = parquetSchema.getFieldCount();
-    if (projectionMap.length != projectionSize) {
-      throw new IllegalArgumentException("Projection sizes do not match: " +
-          projectionSize + ", " + projectionMap.length);
-    }
 
-    this.converters = new Converter[projectionSize];
-    for (int i = 0; i < projectionSize; ++i) {
+    // The projectionMap.length does not match parquetSchema.getFieldCount()
+    // when the projection contains NULL_TYPE columns. We will skip over the
+    // NULL_TYPE columns when we construct the converters and populate the
+    // NULL_TYPE columns with NullDatums in start().
+    int index = 0;
+    this.converters = new Converter[parquetSchema.getFieldCount()];
+    for (int i = 0; i < projectionMap.length; ++i) {
       final int projectionIndex = projectionMap[i];
       Column column = tajoReadSchema.getColumn(projectionIndex);
-      Type type = parquetSchema.getType(i);
-      converters[i] = newConverter(column, type, new ParentValueContainer() {
+      if (column.getDataType().getType() == TajoDataTypes.Type.NULL_TYPE) {
+        continue;
+      }
+      Type type = parquetSchema.getType(index);
+      converters[index] = newConverter(column, type, new ParentValueContainer() {
         @Override
         void add(Object value) {
           TajoRecordConverter.this.set(projectionIndex, value);
         }
       });
+      ++index;
     }
   }
 
   private void set(int index, Object value) {
-    currentTuple.put(index, (Datum) value);
+    currentTuple.put(index, (Datum)value);
   }
 
   private Converter newConverter(Column column, Type type,
@@ -127,6 +131,14 @@ public class TajoRecordConverter extends GroupConverter {
   @Override
   public void start() {
     currentTuple = new VTuple(tupleSize);
+    for (int i = 0; i < projectionMap.length; ++i) {
+      final int projectionIndex = projectionMap[i];
+      Column column = tajoReadSchema.getColumn(projectionIndex);
+      if (column.getDataType().getType() != TajoDataTypes.Type.NULL_TYPE) {
+        continue;
+      }
+      set(projectionIndex, NullDatum.get());
+    }
   }
 
   @Override

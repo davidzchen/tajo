@@ -32,6 +32,7 @@ import parquet.schema.Type;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.Column;
+import org.apache.tajo.common.TajoDataTypes;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.datum.Datum;
 
@@ -75,25 +76,29 @@ public class TajoWriteSupport extends WriteSupport<Tuple> {
   private void writeRecordFields(GroupType schema, Schema tajoSchema,
                                  Tuple tuple) {
     List<Type> fields = schema.getFields();
-    for (int i = 0; i < tajoSchema.size(); ++i) {
-      Column column = tajoSchema.getColumn(i);
-      Datum datum = tuple.get(i);
-      Type fieldType = fields.get(i);
-      if (!tuple.isNull(i)) {
-        recordConsumer.startField(fieldType.getName(), i);
+    // Parquet ignores Tajo NULL_TYPE columns, so the index may differ.
+    int index = 0;
+    for (int tajoIndex = 0; tajoIndex < tajoSchema.size(); ++tajoIndex) {
+      Column column = tajoSchema.getColumn(tajoIndex);
+      if (column.getDataType().getType() == TajoDataTypes.Type.NULL_TYPE) {
+        continue;
+      }
+      Datum datum = tuple.get(tajoIndex);
+      Type fieldType = fields.get(index);
+      if (!tuple.isNull(tajoIndex)) {
+        recordConsumer.startField(fieldType.getName(), index);
         writeValue(fieldType, column, datum);
-        recordConsumer.endField(fieldType.getName(), i);
+        recordConsumer.endField(fieldType.getName(), index);
       } else if (fieldType.isRepetition(Type.Repetition.REQUIRED)) {
         throw new RuntimeException("Null-value for required field: " +
             column.getSimpleName());
       }
+      ++index;
     }
   }
 
   private void writeValue(Type fieldType, Column column, Datum datum) {
     switch (column.getDataType().getType()) {
-      case NULL_TYPE:
-        break;
       case BOOLEAN:
         recordConsumer.addBoolean((Boolean) datum.asBool());
         break;

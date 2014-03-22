@@ -79,7 +79,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
     }
     MessageType requestedParquetSchema =
       new TajoSchemaConverter().convert(requestedSchema);
-    LOG.error("Reading data with projection:\n" + requestedParquetSchema);
+    LOG.debug("Reading data with projection:\n" + requestedParquetSchema);
     return new ReadContext(requestedParquetSchema);
   }
 
