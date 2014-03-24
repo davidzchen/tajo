@@ -32,26 +32,54 @@ import parquet.hadoop.api.ReadSupport;
  * Read Tajo records from a Parquet file
  */
 public class TajoParquetReader extends ParquetReader<Tuple> {
+  /**
+   * Class constructor.
+   *
+   * @param file The file to read from.
+   * @param readSchema Tajo schema of the table.
+   */
   public TajoParquetReader(Path file, Schema readSchema) throws IOException {
     super(file, new TajoReadSupport(readSchema));
   }
 
+  /**
+   * Class constructor.
+   *
+   * @param file The file to read from.
+   * @param readSchema Tajo schema of the table.
+   * @param requestedSchema Tajo schema of the projection.
+   */
   public TajoParquetReader(Path file, Schema readSchema,
                            Schema requestedSchema) throws IOException {
     super(file, new TajoReadSupport(readSchema, requestedSchema));
   }
 
+  /**
+   * Class constructor
+   *
+   * @param file The file to read from.
+   * @param readSchema Tajo schema of the table.
+   * @param recordFilter Record filter.
+   */
+  public TajoParquetReader(Path file, Schema readSchema,
+                           UnboundRecordFilter recordFilter)
+      throws IOException {
+    super(file, new TajoReadSupport(readSchema), recordFilter);
+  }
+
+  /**
+   * Class constructor
+   *
+   * @param file The file to read from.
+   * @param readSchema Tajo schema of the table.
+   * @param requestedSchema Tajo schema of the projection.
+   * @param recordFilter Record filter.
+   */
   public TajoParquetReader(Path file, Schema readSchema,
                            Schema requestedSchema,
                            UnboundRecordFilter recordFilter)
       throws IOException {
     super(file, new TajoReadSupport(readSchema, requestedSchema),
           recordFilter);
-  }
-
-  public TajoParquetReader(Path file, Schema readSchema,
-                           UnboundRecordFilter recordFilter)
-      throws IOException {
-    super(file, new TajoReadSupport(readSchema), recordFilter);
   }
 }

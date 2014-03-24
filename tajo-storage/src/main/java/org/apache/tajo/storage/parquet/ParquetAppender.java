@@ -29,40 +29,87 @@ import org.apache.tajo.storage.FileAppender;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.storage.fragment.FileFragment;
 
+/**
+ * FileAppender for writing to Parquet files.
+ */
 public class ParquetAppender extends FileAppender {
   private TajoParquetWriter writer;
+  private TableStatistics stats;
 
+  /**
+   * Class constructor
+   *
+   * @param conf Configuration properties.
+   * @param schema The table schema.
+   * @param meta The table metadata.
+   * @param path The path of the Parquet file to write to.
+   */
   public ParquetAppender(Configuration conf, Schema schema, TableMeta meta,
                          Path path) throws IOException {
     super(conf, schema, meta, path);
   }
 
+  /**
+   * Initializes the Appender. This method creates a new TajoParquetWriter
+   * and initializes the table statistics if enabled.
+   */
   public void init() throws IOException {
     writer = new TajoParquetWriter(path, schema);
+    if (enabledStats) {
+      this.stats = new TableStatistics(schema);
+    }
   }
 
+  /**
+   * Gets the current offset. Tracking offsets is currenly not implemented, so
+   * this method always returns 0.
+   *
+   * @return 0
+   */
   @Override
   public long getOffset() throws IOException {
     return 0;
   }
 
+  /**
+   * Write a Tuple to the Parquet file.
+   *
+   * @param tuple The Tuple to write.
+   */
   @Override
   public void addTuple(Tuple tuple) throws IOException {
     writer.write(tuple);
+    if (enabledStats) {
+      stats.incrementRow();
+    }
   }
 
+  /**
+   * The ParquetWriter does not need to be flushed, so this is a no-op.
+   */
   @Override
   public void flush() throws IOException {
-
   }
 
+  /**
+   * Closes the Appender.
+   */
   @Override
   public void close() throws IOException {
     writer.close();
   }
 
+  /**
+   * If table statistics is enabled, retrieve the table statistics.
+   *
+   * @return Table statistics if enabled or null otherwise.
+   */
   @Override
   public TableStats getStats() {
-    return null;
+    if (enabledStats) {
+      return stats.getTableStat();
+    } else {
+      return null;
+    }
   }
 }

@@ -41,7 +41,7 @@ import org.apache.tajo.catalog.Column;
  * details on the mapping.
  */
 public class TajoSchemaConverter {
-  private final String TABLE_SCHEMA = "table_schema";
+  private static final String TABLE_SCHEMA = "table_schema";
 
   public TajoSchemaConverter() {
   }
@@ -83,7 +83,6 @@ public class TajoSchemaConverter {
     final String fieldName = fieldType.getName();
     final PrimitiveTypeName parquetPrimitiveTypeName =
         fieldType.asPrimitiveType().getPrimitiveTypeName();
-    final OriginalType originalType = fieldType.getOriginalType();
     return parquetPrimitiveTypeName.convert(
         new PrimitiveType.PrimitiveTypeNameConverter<Column, RuntimeException>() {
       @Override

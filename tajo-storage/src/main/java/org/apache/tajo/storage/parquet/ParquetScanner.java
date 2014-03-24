@@ -31,18 +31,28 @@ import org.apache.tajo.storage.FileScanner;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.storage.fragment.FileFragment;
 
+/**
+ * FileScanner for reading Parquet files
+ */
 public class ParquetScanner extends FileScanner {
   private TajoParquetReader reader;
 
+  /**
+   * Class constructor.
+   *
+   * @param conf
+   * @param schema
+   * @param meta
+   * @param fragment
+   */
   public ParquetScanner(Configuration conf, final Schema schema,
                         final TableMeta meta, final FileFragment fragment) {
     super(conf, schema, meta, fragment);
   }
 
   /**
-   * Initializes the ParquetScanner.
-   * This method creates a projection map, which is an int array containing the
-   * column indices of the projected columns.
+   * Initializes the ParquetScanner. This method initializes the
+   * TajoParquetReader.
    */
   @Override
   public void init() throws IOException {
@@ -54,7 +64,10 @@ public class ParquetScanner extends FileScanner {
   }
 
   /**
-   * Reads the next tuple.
+   * Reads the next Tuple from the Parquet file.
+   *
+   * @return The next Tuple from the Parquet file or null if end of file is
+   *         reached.
    */
   @Override
   public Tuple next() throws IOException {
@@ -80,6 +93,8 @@ public class ParquetScanner extends FileScanner {
 
   /**
    * Returns whether this scanner is projectable.
+   *
+   * @return true
    */
   @Override
   public boolean isProjectable() {
@@ -88,6 +103,8 @@ public class ParquetScanner extends FileScanner {
 
   /**
    * Returns whether this scanner is selectable.
+   *
+   * @return false
    */
   @Override
   public boolean isSelectable() {
@@ -96,6 +113,8 @@ public class ParquetScanner extends FileScanner {
 
   /**
    * Returns whether this scanner is splittable.
+   *
+   * @return false
    */
   @Override
   public boolean isSplittable() {
