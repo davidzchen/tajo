@@ -26,6 +26,7 @@ import org.apache.tajo.catalog.TableMeta;
 import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.statistics.TableStats;
 import org.apache.tajo.storage.FileAppender;
+import org.apache.tajo.storage.TableStatistics;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.storage.fragment.FileFragment;
 
@@ -78,6 +79,11 @@ public class ParquetAppender extends FileAppender {
    */
   @Override
   public void addTuple(Tuple tuple) throws IOException {
+    if (enabledStats) {
+      for (int i = 0; i < schema.size(); ++i) {
+        stats.analyzeField(i, tuple.get(i));
+      }
+    }
     writer.write(tuple);
     if (enabledStats) {
       stats.incrementRow();
