@@ -61,7 +61,7 @@ public class TajoWriteSupport extends WriteSupport<Tuple> {
    * Initializes the WriteSupport.
    *
    * @param configuration The job's configuration.
-   * @return A {@link WriteContext} that describes how to write the file.
+   * @return A WriteContext that describes how to write the file.
    */
   @Override
   public WriteContext init(Configuration configuration) {

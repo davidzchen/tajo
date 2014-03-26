@@ -39,8 +39,8 @@ public class TajoParquetWriter extends ParquetWriter<Tuple> {
    *
    * @param file The file name to write to.
    * @param schema The Tajo schema of the table.
-   * @param compressionCodec Compression codec to use, or
-   *                         CompressionCodecName.UNCOMPRESSED.
+   * @param compressionCodecName Compression codec to use, or
+   *                             CompressionCodecName.UNCOMPRESSED.
    * @param blockSize The block size threshold.
    * @param pageSize See parquet write up. Blocks are subdivided into pages
    *                 for alignment.
@@ -63,8 +63,8 @@ public class TajoParquetWriter extends ParquetWriter<Tuple> {
    *
    * @param file The file name to write to.
    * @param schema The Tajo schema of the table.
-   * @param compressionCodec Compression codec to use, or
-   *                         CompressionCodecName.UNCOMPRESSED.
+   * @param compressionCodecName Compression codec to use, or
+   *                             CompressionCodecName.UNCOMPRESSED.
    * @param blockSize The block size threshold.
    * @param pageSize See parquet write up. Blocks are subdivided into pages
    *                 for alignment.

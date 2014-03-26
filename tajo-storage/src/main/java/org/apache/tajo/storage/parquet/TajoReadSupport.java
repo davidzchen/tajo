@@ -61,8 +61,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
   /**
    * Creates a new TajoReadSupport.
    *
-   * @param requestedSchema The Tajo schema of the requested projection passed
-   *        down by ParquetScanner.
+   * @param readSchema The schema of the table.
    */
   public TajoReadSupport(Schema readSchema) {
     super();
