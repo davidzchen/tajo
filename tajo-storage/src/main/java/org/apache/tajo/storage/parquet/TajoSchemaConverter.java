@@ -86,6 +86,7 @@ public class TajoSchemaConverter {
     final String fieldName = fieldType.getName();
     final PrimitiveTypeName parquetPrimitiveTypeName =
         fieldType.asPrimitiveType().getPrimitiveTypeName();
+    final OriginalType originalType = fieldType.getOriginalType();
     return parquetPrimitiveTypeName.convert(
         new PrimitiveType.PrimitiveTypeNameConverter<Column, RuntimeException>() {
       @Override
@@ -121,7 +122,11 @@ public class TajoSchemaConverter {
 
       @Override
       public Column convertBINARY(PrimitiveTypeName primitiveTypeName) {
-        return new Column(fieldName, TajoDataTypes.Type.BLOB);
+        if (originalType == OriginalType.UTF8) {
+          return new Column(fieldName, TajoDataTypes.Type.TEXT);
+        } else {
+          return new Column(fieldName, TajoDataTypes.Type.BLOB);
+        }
       }
 
       @Override

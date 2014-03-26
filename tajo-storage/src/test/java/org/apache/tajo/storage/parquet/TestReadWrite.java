@@ -51,7 +51,7 @@ public class TestReadWrite {
     return new Path(tmp.getPath());
   }
 
-  private Schema createTestAllSchema() {
+  private Schema createAllTypesSchema() {
     List<Column> columns = new ArrayList<Column>();
     columns.add(new Column("myboolean", Type.BOOLEAN));
     columns.add(new Column("mybit", Type.BIT));
@@ -72,7 +72,7 @@ public class TestReadWrite {
   @Test
   public void testAll() throws Exception {
     Path file = createTmpFile();
-    Schema schema = createTestAllSchema();
+    Schema schema = createAllTypesSchema();
     Tuple tuple = new VTuple(schema.size());
     tuple.put(0, DatumFactory.createBool(true));
     tuple.put(1, DatumFactory.createBit((byte)128));
