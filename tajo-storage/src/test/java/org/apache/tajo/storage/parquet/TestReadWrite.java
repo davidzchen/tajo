@@ -30,6 +30,7 @@ import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.common.TajoDataTypes.Type;
 import org.apache.tajo.datum.DatumFactory;
+import org.apache.tajo.datum.NullDatum;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.storage.VTuple;
 
@@ -62,6 +63,7 @@ public class TestReadWrite {
     columns.add(new Column("myfloat8", Type.FLOAT8));
     columns.add(new Column("mytext", Type.TEXT));
     columns.add(new Column("myblob", Type.BLOB));
+    columns.add(new Column("mynull", Type.NULL_TYPE));
     Column[] columnsArray = new Column[columns.size()];
     columnsArray = columns.toArray(columnsArray);
     return new Schema(columnsArray);
@@ -82,6 +84,7 @@ public class TestReadWrite {
     tuple.put(7, DatumFactory.createFloat8(4.1));
     tuple.put(8, DatumFactory.createText(HELLO));
     tuple.put(9, DatumFactory.createBlob(HELLO.getBytes(Charsets.UTF_8)));
+    tuple.put(10, NullDatum.get());
 
     TajoParquetWriter writer = new TajoParquetWriter(file, schema);
     writer.write(tuple);
@@ -101,5 +104,6 @@ public class TestReadWrite {
     assertEquals(new Double(4.1), new Double(tuple.getFloat8(7)));
     assertTrue(HELLO.equals(tuple.getText(8)));
     assertArrayEquals(HELLO.getBytes(Charsets.UTF_8), tuple.getBytes(9));
+    assertEquals(NullDatum.get(), tuple.get(10));
   }
 }
