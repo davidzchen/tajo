@@ -38,8 +38,7 @@ import org.apache.tajo.datum.Datum;
 
 /**
  * Tajo implementation of {@link WriteSupport} for {@link Tuple}s.
- * Users should use {@link TajoParquetWriter} or {@link ParquetFileAppender}
- * and not this class directly.
+ * Users should use {@link ParquetAppender} and not this class directly.
  */
 public class TajoWriteSupport extends WriteSupport<Tuple> {
   private static final String TAJO_SCHEMA = "parquet.tajo.schema";
@@ -48,11 +47,22 @@ public class TajoWriteSupport extends WriteSupport<Tuple> {
   private MessageType rootSchema;
   private Schema rootTajoSchema;
 
+  /**
+   * Creates a new TajoWriteSupport.
+   *
+   * @param tajoSchema The Tajo schema for the table.
+   */
   public TajoWriteSupport(Schema tajoSchema) {
     this.rootSchema = new TajoSchemaConverter().convert(tajoSchema);
     this.rootTajoSchema = tajoSchema;
   }
 
+  /**
+   * Initializes the WriteSupport.
+   *
+   * @param configuration The job's configuration.
+   * @return A {@link WriteContext} that describes how to write the file.
+   */
   @Override
   public WriteContext init(Configuration configuration) {
     Map<String, String> extraMetaData = new HashMap<String, String>();
@@ -61,11 +71,21 @@ public class TajoWriteSupport extends WriteSupport<Tuple> {
     return new WriteContext(rootSchema, extraMetaData);
   }
 
+  /**
+   * Called once per row group.
+   *
+   * @param recordConsumer The {@link RecordConsumer} to write to.
+   */
   @Override
   public void prepareForWrite(RecordConsumer recordConsumer) {
     this.recordConsumer = recordConsumer;
   }
 
+  /**
+   * Writes a Tuple to the file.
+   *
+   * @param tuple The Tuple to write to the file.
+   */
   @Override
   public void write(Tuple tuple) {
     recordConsumer.startMessage();

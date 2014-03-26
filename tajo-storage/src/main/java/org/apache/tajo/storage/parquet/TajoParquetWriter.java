@@ -29,17 +29,21 @@ import parquet.hadoop.api.WriteSupport;
 import parquet.hadoop.metadata.CompressionCodecName;
 
 /**
- * Write Tajo records to a Parquet file.
+ * Tajo implementation of {@link ParquetWriter} to write Tajo records to a
+ * Parquet file. Users should use {@link ParquetAppender} and not this class
+ * directly.
  */
 public class TajoParquetWriter extends ParquetWriter<Tuple> {
   /**
-   * Create a new {@link TajoParquetWriter}
+   * Create a new TajoParquetWriter
    *
-   * @param file
-   * @param schema
-   * @param compressionCodecName
-   * @param blockSize
-   * @param pageSize
+   * @param file The file name to write to.
+   * @param schema The Tajo schema of the table.
+   * @param compressionCodec Compression codec to use, or
+   *                         CompressionCodecName.UNCOMPRESSED.
+   * @param blockSize The block size threshold.
+   * @param pageSize See parquet write up. Blocks are subdivided into pages
+   *                 for alignment.
    * @throws IOException
    */
   public TajoParquetWriter(Path file,
@@ -55,15 +59,17 @@ public class TajoParquetWriter extends ParquetWriter<Tuple> {
   }
 
   /**
-   * Create a new {@link TajoParquetWriter}
+   * Create a new TajoParquetWriter.
    *
-   * @param file The file name to write to
-   * @param schema
-   * @param compressionCodec Compression codec to use, or CompressionCodecName.UNCOMPRESSED.
-   * @param blockSize the block size threshold.
-   * @param pageSize See parquet write up. Blocks are subdivided into pages for alignment.
+   * @param file The file name to write to.
+   * @param schema The Tajo schema of the table.
+   * @param compressionCodec Compression codec to use, or
+   *                         CompressionCodecName.UNCOMPRESSED.
+   * @param blockSize The block size threshold.
+   * @param pageSize See parquet write up. Blocks are subdivided into pages
+   *                 for alignment.
    * @param enableDictionary Whether to use a dictionary to compress columns.
-   * @param validating to turn on validation
+   * @param validating Whether to turn on validation.
    * @throws IOException
    */
   public TajoParquetWriter(Path file,
@@ -83,11 +89,11 @@ public class TajoParquetWriter extends ParquetWriter<Tuple> {
   }
 
   /**
-   * Creates a new {@link TajoParquetWriter}. The default block size is 50 MB.
+   * Creates a new TajoParquetWriter. The default block size is 50 MB.
    * The default page size is 1 MB. Default compression is no compression.
    *
-   * @param file
-   * @param schema
+   * @param file The Path of the file to write to.
+   * @param schema The Tajo schema of the table.
    * @throws IOException
    */
   public TajoParquetWriter(Path file, Schema schema) throws IOException {

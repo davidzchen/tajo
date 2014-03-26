@@ -38,7 +38,7 @@ public class ParquetScanner extends FileScanner {
   private TajoParquetReader reader;
 
   /**
-   * Class constructor.
+   * Creates a new ParquetScanner.
    *
    * @param conf
    * @param schema

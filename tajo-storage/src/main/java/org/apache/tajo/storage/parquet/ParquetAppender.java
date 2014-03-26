@@ -38,7 +38,7 @@ public class ParquetAppender extends FileAppender {
   private TableStatistics stats;
 
   /**
-   * Class constructor
+   * Creates a new ParquetAppender.
    *
    * @param conf Configuration properties.
    * @param schema The table schema.

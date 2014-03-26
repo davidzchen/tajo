@@ -42,6 +42,9 @@ import org.apache.tajo.datum.BlobDatum;
 import org.apache.tajo.datum.NullDatum;
 import org.apache.tajo.datum.ProtobufDatumFactory;
 
+/**
+ * Converter to convert a Parquet record into a Tajo Tuple.
+ */
 public class TajoRecordConverter extends GroupConverter {
   private final GroupType parquetSchema;
   private final Schema tajoReadSchema;
@@ -52,6 +55,14 @@ public class TajoRecordConverter extends GroupConverter {
 
   private Tuple currentTuple;
 
+  /**
+   * Creates a new TajoRecordConverter.
+   *
+   * @param parquetSchema The Parquet schema of the projection.
+   * @param tajoReadSchema The Tajo schema of the table.
+   * @param projectionMap An array mapping the projection column to the column
+   *                      index in the table.
+   */
   public TajoRecordConverter(GroupType parquetSchema, Schema tajoReadSchema,
                              int[] projectionMap) {
     this.parquetSchema = parquetSchema;
@@ -123,16 +134,29 @@ public class TajoRecordConverter extends GroupConverter {
     }
   }
 
+  /**
+   * Gets the converter for a specific field.
+   *
+   * @param fieldIndex Index of the field in the projection.
+   * @return The converter for the field.
+   */
   @Override
   public Converter getConverter(int fieldIndex) {
     return converters[fieldIndex];
   }
 
+  /**
+   * Called before processing fields. This method fills any fields that have
+   * NULL values or have type NULL_TYPE with a NullDatum.
+   */
   @Override
   public void start() {
     currentTuple = new VTuple(tupleSize);
   }
 
+  /**
+   * Called after all fields have been processed.
+   */
   @Override
   public void end() {
     for (int i = 0; i < projectionMap.length; ++i) {
@@ -145,6 +169,11 @@ public class TajoRecordConverter extends GroupConverter {
     }
   }
 
+  /**
+   * Returns the current record converted by this converter.
+   *
+   * @return The current record.
+   */
   public Tuple getCurrentRecord() {
     return currentTuple;
   }

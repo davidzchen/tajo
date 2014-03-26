@@ -26,9 +26,19 @@ import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.Column;
 import org.apache.tajo.storage.Tuple;
 
+/**
+ * Materializes a Tajo Tuple from a stream of Parquet data.
+ */
 class TajoRecordMaterializer extends RecordMaterializer<Tuple> {
   private final TajoRecordConverter root;
 
+  /**
+   * Creates a new TajoRecordMaterializer.
+   *
+   * @param parquetSchema The Parquet schema of the projection.
+   * @param tajoSchema The Tajo schema of the projection.
+   * @param tajoReadSchema The Tajo schema of the table.
+   */
   public TajoRecordMaterializer(MessageType parquetSchema, Schema tajoSchema,
                                 Schema tajoReadSchema) {
     int[] projectionMap = getProjectionMap(tajoReadSchema, tajoSchema);
@@ -46,11 +56,21 @@ class TajoRecordMaterializer extends RecordMaterializer<Tuple> {
     return projectionMap;
   }
 
+  /**
+   * Returns the current record being materialized.
+   *
+   * @return The record being materialized.
+   */
   @Override
   public Tuple getCurrentRecord() {
     return root.getCurrentRecord();
   }
 
+  /**
+   * Returns the root converter.
+   *
+   * @param return The root converter
+   */
   @Override
   public GroupConverter getRootConverter() {
     return root;

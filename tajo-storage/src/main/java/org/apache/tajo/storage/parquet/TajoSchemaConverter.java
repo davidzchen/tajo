@@ -43,6 +43,9 @@ import org.apache.tajo.catalog.Column;
 public class TajoSchemaConverter {
   private static final String TABLE_SCHEMA = "table_schema";
 
+  /**
+   * Creates a new TajoSchemaConverter.
+   */
   public TajoSchemaConverter() {
   }
 

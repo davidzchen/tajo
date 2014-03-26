@@ -31,6 +31,10 @@ import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.json.CatalogGsonHelper;
 import org.apache.tajo.storage.Tuple;
 
+/**
+ * Tajo implementation of {@link ReadSupport} for {@link Tuple}s.
+ * Users should use {@link ParquetScanner} and not this class directly.
+ */
 public class TajoReadSupport extends ReadSupport<Tuple> {
   private static final Log LOG = Log.getLog(TajoReadSupport.class);
 
@@ -43,7 +47,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
   public static final String TAJO_SCHEMA_METADATA_KEY = "tajo.schema";
 
   /**
-   * Class constructor.
+   * Creates a new TajoReadSupport.
    *
    * @param requestedSchema The Tajo schema of the requested projection passed
    *        down by ParquetScanner.
@@ -55,7 +59,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
   }
 
   /**
-   * Class constructor.
+   * Creates a new TajoReadSupport.
    *
    * @param requestedSchema The Tajo schema of the requested projection passed
    *        down by ParquetScanner.
@@ -70,7 +74,7 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
    * Initializes the ReadSupport.
    *
    * @param context The InitContext.
-   * @return A ReadContext created with the requested projection schema.
+   * @return A ReadContext that defines how to read the file.
    */
   @Override
   public ReadContext init(InitContext context) {
@@ -86,10 +90,10 @@ public class TajoReadSupport extends ReadSupport<Tuple> {
   /**
    * Prepares for read.
    *
-   * @param configuration
-   * @param keyValueMetaData
-   * @param fileSchema
-   * @param readContext
+   * @param configuration The job configuration.
+   * @param keyValueMetaData App-specific metadata from the file.
+   * @param fileSchema The schema of the Parquet file.
+   * @param readContext Returned by the init method.
    */
   @Override
   public RecordMaterializer<Tuple> prepareForRead(

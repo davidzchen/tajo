@@ -29,11 +29,13 @@ import parquet.hadoop.ParquetReader;
 import parquet.hadoop.api.ReadSupport;
 
 /**
- * Read Tajo records from a Parquet file
+ * Tajo implementation of {@link ParquetReader} to read Tajo records from a
+ * Parquet file. Users should use {@link ParquetScanner} and not this class
+ * directly.
  */
 public class TajoParquetReader extends ParquetReader<Tuple> {
   /**
-   * Class constructor.
+   * Creates a new TajoParquetReader.
    *
    * @param file The file to read from.
    * @param readSchema Tajo schema of the table.
@@ -43,7 +45,7 @@ public class TajoParquetReader extends ParquetReader<Tuple> {
   }
 
   /**
-   * Class constructor.
+   * Creates a new TajoParquetReader.
    *
    * @param file The file to read from.
    * @param readSchema Tajo schema of the table.
@@ -55,7 +57,7 @@ public class TajoParquetReader extends ParquetReader<Tuple> {
   }
 
   /**
-   * Class constructor
+   * Creates a new TajoParquetReader.
    *
    * @param file The file to read from.
    * @param readSchema Tajo schema of the table.
@@ -68,7 +70,7 @@ public class TajoParquetReader extends ParquetReader<Tuple> {
   }
 
   /**
-   * Class constructor
+   * Creates a new TajoParquetReader.
    *
    * @param file The file to read from.
    * @param readSchema Tajo schema of the table.
