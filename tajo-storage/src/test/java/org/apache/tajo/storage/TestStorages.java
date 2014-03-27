@@ -81,6 +81,7 @@ public class TestStorages {
         {StoreType.RCFILE, true, true},
         {StoreType.PARQUET, false, false},
         {StoreType.SEQUENCEFILE, true, true},
+        {StoreType.AVRO, false, false},
     });
   }
 
@@ -178,7 +179,8 @@ public class TestStorages {
           || storeType == StoreType.TREVNI
           || storeType == StoreType.CSV
           || storeType == StoreType.PARQUET
-          || storeType == StoreType.SEQUENCEFILE) {
+          || storeType == StoreType.SEQUENCEFILE
+          || storeType == StoreType.AVRO) {
         assertTrue(tuple.get(0) == null);
       }
       assertTrue(tupleCnt + 2 == tuple.get(1).asInt8());
@@ -654,7 +656,5 @@ public class TestStorages {
       scanner.close();
     }
   }
-
-
 
 }

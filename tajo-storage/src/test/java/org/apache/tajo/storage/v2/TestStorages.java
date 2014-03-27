@@ -83,10 +83,11 @@ public class TestStorages {
         {StoreType.RCFILE, true, true},
         {StoreType.TREVNI, false, true},
         {StoreType.PARQUET, false, false},
+        {StoreType.AVRO, false, false},
         {StoreType.RAW, false, false},
     });
   }
-		
+
 	@Test
   public void testSplitable() throws IOException {
     if (splitable) {
@@ -179,7 +180,8 @@ public class TestStorages {
       if (storeType == StoreType.RCFILE
           || storeType == StoreType.TREVNI
           || storeType == StoreType.CSV
-          || storeType == StoreType.PARQUET) {
+          || storeType == StoreType.PARQUET
+          || storeType == StoreType.AVRO) {
         assertTrue(tuple.get(0) == null || tuple.get(0) instanceof NullDatum);
       }
       assertTrue(tupleCnt + 2 == tuple.get(1).asInt8());

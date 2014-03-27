@@ -68,9 +68,9 @@ public class TestMergeScanner {
         {StoreType.TREVNI},
         {StoreType.PARQUET},
         {StoreType.SEQUENCEFILE},
+        {StoreType.AVRO},
         // RowFile requires Byte-buffer read support, so we omitted RowFile.
         //{StoreType.ROWFILE},
-
     });
   }
 
@@ -78,7 +78,7 @@ public class TestMergeScanner {
   public void setup() throws Exception {
     conf = new TajoConf();
     conf.setVar(ConfVars.ROOT_DIR, TEST_PATH);
-    conf.setStrings("tajo.storage.projectable-scanner", "rcfile", "trevni", "parquet");
+    conf.setStrings("tajo.storage.projectable-scanner", "rcfile", "trevni", "parquet", "avro");
     testDir = CommonTestingUtil.getTestDir(TEST_PATH);
     fs = testDir.getFileSystem(conf);
     sm = StorageManagerFactory.getStorageManager(conf, testDir);
@@ -176,6 +176,7 @@ public class TestMergeScanner {
       case PARQUET:
       case SEQUENCEFILE:
       case CSV:
+      case AVRO:
         return true;
       default:
         return false;
