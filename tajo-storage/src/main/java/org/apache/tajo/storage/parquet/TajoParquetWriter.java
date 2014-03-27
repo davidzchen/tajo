@@ -89,7 +89,7 @@ public class TajoParquetWriter extends ParquetWriter<Tuple> {
   }
 
   /**
-   * Creates a new TajoParquetWriter. The default block size is 50 MB.
+   * Creates a new TajoParquetWriter. The default block size is 128 MB.
    * The default page size is 1 MB. Default compression is no compression.
    *
    * @param file The Path of the file to write to.
