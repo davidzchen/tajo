@@ -18,6 +18,10 @@
 
 package org.apache.tajo.storage.parquet;
 
+import parquet.hadoop.ParquetWriter;
+import parquet.hadoop.ParquetOutputFormat;
+import parquet.hadoop.metadata.CompressionCodecName;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.tajo.catalog.Schema;
@@ -34,6 +38,11 @@ import java.io.IOException;
  */
 public class ParquetAppender extends FileAppender {
   private TajoParquetWriter writer;
+  private int blockSize;
+  private int pageSize;
+  private CompressionCodecName compressionCodecName;
+  private boolean enableDictionary;
+  private boolean validating;
   private TableStatistics stats;
 
   /**
@@ -47,6 +56,46 @@ public class ParquetAppender extends FileAppender {
   public ParquetAppender(Configuration conf, Schema schema, TableMeta meta,
                          Path path) throws IOException {
     super(conf, schema, meta, path);
+    String value = meta.getOption(ParquetOutputFormat.BLOCK_SIZE);
+    if (value == null) {
+      this.blockSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
+    } else {
+      this.blockSize = Integer.parseInt(value);
+    }
+
+    value = meta.getOption(ParquetOutputFormat.PAGE_SIZE);
+    if (value == null) {
+      this.pageSize = ParquetWriter.DEFAULT_PAGE_SIZE;
+    } else {
+      this.pageSize = Integer.parseInt(value);
+    }
+
+    value = meta.getOption(ParquetOutputFormat.COMPRESSION);
+    if (value == null) {
+      // When parquet-hadoop 1.3.3 is available, this should be changed to
+      // ParquetWriter.DEFAULT_COMPRESSION_CODEC_NAME.
+      this.compressionCodecName = CompressionCodecName.UNCOMPRESSED;
+    } else {
+      this.compressionCodecName = CompressionCodecName.fromConf(value);
+    }
+
+    value = meta.getOption(ParquetOutputFormat.ENABLE_DICTIONARY);
+    if (value == null) {
+      // When parquet-hadoop 1.3.3 is available, this should be changed to
+      // ParquetWriter.DEFAULT_IS_DICTIONARY_ENABLED.
+      this.enableDictionary = true;
+    } else {
+      this.enableDictionary = Boolean.parseBoolean(value);
+    }
+
+    value = meta.getOption(ParquetOutputFormat.VALIDATION);
+    if (value == null) {
+      // When parquet-hadoop 1.3.3 is available, this should be changed to
+      // ParquetWriter.DEFAULT_IS_VALIDATING_ENABLED.
+      this.validating = false;
+    } else {
+      this.validating = Boolean.parseBoolean(value);
+    }
   }
 
   /**
@@ -54,7 +103,13 @@ public class ParquetAppender extends FileAppender {
    * and initializes the table statistics if enabled.
    */
   public void init() throws IOException {
-    writer = new TajoParquetWriter(path, schema);
+    writer = new TajoParquetWriter(path,
+                                   schema,
+                                   compressionCodecName,
+                                   blockSize,
+                                   pageSize,
+                                   enableDictionary,
+                                   validating);
     if (enabledStats) {
       this.stats = new TableStatistics(schema);
     }
