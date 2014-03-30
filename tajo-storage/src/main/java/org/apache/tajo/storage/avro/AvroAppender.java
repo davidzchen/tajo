@@ -18,9 +18,9 @@
 
 package org.apache.tajo.storage.avro;
 
+import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.tajo.catalog.Schema;
 import org.apache.tajo.catalog.TableMeta;
 import org.apache.tajo.catalog.statistics.TableStats;
 import org.apache.tajo.storage.FileAppender;
@@ -33,7 +33,9 @@ import java.io.IOException;
  * FileAppender for writing to Avro files.
  */
 public class AvroAppender extends FileAppender {
+  private FileSystem fs;
   private TableStatistics stats;
+  private Schema avroSchema;
 
   /**
    * Creates a new AvroAppender.
@@ -43,8 +45,8 @@ public class AvroAppender extends FileAppender {
    * @param meta The table metadata.
    * @param path The path of the Parquet file to write to.
    */
-  public AvroAppender(Configuration conf, Schema schema, TableMeta meta,
-                         Path path) throws IOException {
+  public AvroAppender(Configuration conf, org.apache.avro.Schema schema,
+                      TableMeta meta, Path path) throws IOException {
     super(conf, schema, meta, path);
   }
 
@@ -52,9 +54,21 @@ public class AvroAppender extends FileAppender {
    * Initializes the Appender.
    */
   public void init() throws IOException {
+    fs = path.getFileSystem(conf);
+    if (!fs.exists(path.getParent()) {
+      throw new FileNotFoundException(path.toString());
+    }
+
+    String schemaString = tableMeta.getOption(AVRO_SCHEMA);
+    if (schemaString == null) {
+      throw new RuntimeException("No Avro schema for table.");
+    }
+    avroSchema = new org.apache.avro.Schema.Parser().parse(schemaString);
+
     if (enabledStats) {
       this.stats = new TableStatistics(schema);
     }
+    super.init();
   }
 
   /**
@@ -75,9 +89,36 @@ public class AvroAppender extends FileAppender {
    */
   @Override
   public void addTuple(Tuple tuple) throws IOException {
-    if (enabledStats) {
-      for (int i = 0; i < schema.size(); ++i) {
+    for (int i = 0; i < schema.size(); ++i) {
+      Column column = schema.getColumn(i);
+      if (enabledStats) {
         stats.analyzeField(i, tuple.get(i));
+      }
+      switch (type) {
+        case NULL_TYPE:
+          break;
+        case BOOLEAN:
+          break;
+        case BIT:
+        case INT2:
+        case INT4:
+          break;
+        case INT8:
+          break;
+        case FLOAT4:
+          break;
+        case FLOAT8:
+          break;
+        case CHAR:
+        case TEXT:
+          break;
+        case PROTOBUF:
+        case BLOB:
+        case INET4:
+        case INET6:
+          break;
+        default:
+          throw new RuntimeException("Cannot convert to Avro type: " + type);
       }
     }
 
