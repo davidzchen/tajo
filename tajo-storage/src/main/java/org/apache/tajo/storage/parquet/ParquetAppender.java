@@ -113,6 +113,7 @@ public class ParquetAppender extends FileAppender {
     if (enabledStats) {
       this.stats = new TableStatistics(schema);
     }
+    super.init();
   }
 
   /**
