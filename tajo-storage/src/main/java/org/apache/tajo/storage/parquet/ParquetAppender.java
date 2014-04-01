@@ -18,7 +18,6 @@
 
 package org.apache.tajo.storage.parquet;
 
-import parquet.hadoop.ParquetWriter;
 import parquet.hadoop.ParquetOutputFormat;
 import parquet.hadoop.metadata.CompressionCodecName;
 
@@ -56,46 +55,16 @@ public class ParquetAppender extends FileAppender {
   public ParquetAppender(Configuration conf, Schema schema, TableMeta meta,
                          Path path) throws IOException {
     super(conf, schema, meta, path);
-    String value = meta.getOption(ParquetOutputFormat.BLOCK_SIZE);
-    if (value == null) {
-      this.blockSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
-    } else {
-      this.blockSize = Integer.parseInt(value);
-    }
-
-    value = meta.getOption(ParquetOutputFormat.PAGE_SIZE);
-    if (value == null) {
-      this.pageSize = ParquetWriter.DEFAULT_PAGE_SIZE;
-    } else {
-      this.pageSize = Integer.parseInt(value);
-    }
-
-    value = meta.getOption(ParquetOutputFormat.COMPRESSION);
-    if (value == null) {
-      // When parquet-hadoop 1.3.3 is available, this should be changed to
-      // ParquetWriter.DEFAULT_COMPRESSION_CODEC_NAME.
-      this.compressionCodecName = CompressionCodecName.UNCOMPRESSED;
-    } else {
-      this.compressionCodecName = CompressionCodecName.fromConf(value);
-    }
-
-    value = meta.getOption(ParquetOutputFormat.ENABLE_DICTIONARY);
-    if (value == null) {
-      // When parquet-hadoop 1.3.3 is available, this should be changed to
-      // ParquetWriter.DEFAULT_IS_DICTIONARY_ENABLED.
-      this.enableDictionary = true;
-    } else {
-      this.enableDictionary = Boolean.parseBoolean(value);
-    }
-
-    value = meta.getOption(ParquetOutputFormat.VALIDATION);
-    if (value == null) {
-      // When parquet-hadoop 1.3.3 is available, this should be changed to
-      // ParquetWriter.DEFAULT_IS_VALIDATING_ENABLED.
-      this.validating = false;
-    } else {
-      this.validating = Boolean.parseBoolean(value);
-    }
+    this.blockSize = Integer.parseInt(
+        meta.getOption(ParquetOutputFormat.BLOCK_SIZE));
+    this.pageSize = Integer.parseInt(
+        meta.getOption(ParquetOutputFormat.PAGE_SIZE));
+    this.compressionCodecName = CompressionCodecName.fromConf(
+        meta.getOption(ParquetOutputFormat.COMPRESSION));
+    this.enableDictionary = Boolean.parseBoolean(
+        meta.getOption(ParquetOutputFormat.ENABLE_DICTIONARY));
+    this.validating = Boolean.parseBoolean(
+        meta.getOption(ParquetOutputFormat.VALIDATION));
   }
 
   /**

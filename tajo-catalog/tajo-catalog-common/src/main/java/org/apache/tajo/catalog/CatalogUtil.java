@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import parquet.hadoop.ParquetOutputFormat;
+
 import static org.apache.tajo.catalog.proto.CatalogProtos.StoreType;
 import static org.apache.tajo.common.TajoDataTypes.Type;
 
@@ -285,14 +287,27 @@ public class CatalogUtil {
       return null;
     }
   }
+
   public static Options newOptionsWithDefault(StoreType type) {
     Options options = new Options();
-    if(StoreType.CSV == type){
-      options.put(CatalogConstants.CSVFILE_DELIMITER, CatalogConstants.CSVFILE_DELIMITER_DEFAULT);
-    } else if(StoreType.RCFILE == type){
-      options.put(CatalogConstants.RCFILE_SERDE, CatalogConstants.RCFILE_BINARY_SERDE);
+    if (type == StoreType.CSV) {
+      options.put(CatalogConstants.CSVFILE_DELIMITER,
+                  CatalogConstants.CSVFILE_DELIMITER_DEFAULT);
+    } else if (type == StoreType.RCFILE) {
+      options.put(CatalogConstants.RCFILE_SERDE,
+                  CatalogConstants.RCFILE_BINARY_SERDE);
+    } else if (type == StoreType.PARQUET) {
+      options.put(ParquetOutputFormat.BLOCK_SIZE,
+                  CatalogConstants.PARQUET_DEFAULT_BLOCK_SIZE);
+      options.put(ParquetOutputFormat.PAGE_SIZE,
+                  CatalogConstants.PARQUET_DEFAULT_PAGE_SIZE);
+      options.put(ParquetOutputFormat.COMPRESSION,
+                  CatalogConstants.PARQUET_DEFAULT_COMPRESSION_CODEC_NAME);
+      options.put(ParquetOutputFormat.ENABLE_DICTIONARY,
+                  CatalogConstants.PARQUET_DEFAULT_IS_DICTIONARY_ENABLED);
+      options.put(ParquetOutputFormat.VALIDATION,
+                  CatalogConstants.PARQUET_DEFAULT_IS_VALIDATION_ENABLED);
     }
-
     return options;
   }
 

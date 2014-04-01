@@ -145,6 +145,7 @@ public class TestStorages {
     schema.addColumn("score", Type.FLOAT4);
 
     TableMeta meta = CatalogUtil.newTableMeta(storeType);
+    meta.setOptions(CatalogUtil.newOptionsWithDefault(storeType));
 
     Path tablePath = new Path(testDir, "testProjection.data");
     Appender appender = StorageManagerFactory.getStorageManager(conf).getAppender(meta, schema, tablePath);
@@ -206,6 +207,7 @@ public class TestStorages {
 
     Options options = new Options();
     TableMeta meta = CatalogUtil.newTableMeta(storeType, options);
+    meta.setOptions(CatalogUtil.newOptionsWithDefault(storeType));
 
     Path tablePath = new Path(testDir, "testVariousTypes.data");
     Appender appender = StorageManagerFactory.getStorageManager(conf).getAppender(meta, schema, tablePath);
@@ -267,6 +269,7 @@ public class TestStorages {
 
     Options options = new Options();
     TableMeta meta = CatalogUtil.newTableMeta(storeType, options);
+    meta.setOptions(CatalogUtil.newOptionsWithDefault(storeType));
     meta.putOption(CatalogConstants.CSVFILE_NULL, "\\\\N");
     meta.putOption(CatalogConstants.RCFILE_NULL, "\\\\N");
     meta.putOption(CatalogConstants.RCFILE_SERDE, TextSerializerDeserializer.class.getName());
