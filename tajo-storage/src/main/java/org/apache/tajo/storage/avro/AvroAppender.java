@@ -19,7 +19,13 @@
 package org.apache.tajo.storage.avro;
 
 import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.tajo.catalog.TableMeta;
 import org.apache.tajo.catalog.statistics.TableStats;
@@ -33,9 +39,9 @@ import java.io.IOException;
  * FileAppender for writing to Avro files.
  */
 public class AvroAppender extends FileAppender {
-  private FileSystem fs;
   private TableStatistics stats;
   private Schema avroSchema;
+  private DataFileWriter<GenericWriter> dataFileWriter;
 
   /**
    * Creates a new AvroAppender.
@@ -45,7 +51,8 @@ public class AvroAppender extends FileAppender {
    * @param meta The table metadata.
    * @param path The path of the Parquet file to write to.
    */
-  public AvroAppender(Configuration conf, org.apache.avro.Schema schema,
+  public AvroAppender(Configuration conf,
+                      org.apache.tajo.catalog.Schema schema,
                       TableMeta meta, Path path) throws IOException {
     super(conf, schema, meta, path);
   }
@@ -54,16 +61,22 @@ public class AvroAppender extends FileAppender {
    * Initializes the Appender.
    */
   public void init() throws IOException {
-    fs = path.getFileSystem(conf);
+    FileSystem fs = path.getFileSystem(conf);
     if (!fs.exists(path.getParent()) {
       throw new FileNotFoundException(path.toString());
     }
+    FSDataOutputStream outputStream = fs.create(path);
 
     String schemaString = tableMeta.getOption(AVRO_SCHEMA);
     if (schemaString == null) {
       throw new RuntimeException("No Avro schema for table.");
     }
-    avroSchema = new org.apache.avro.Schema.Parser().parse(schemaString);
+    avroSchema = new Schema.Parser().parse(schemaString);
+
+    DatumWriter<GenericRecord> datumWriter =
+        new GenericDatumWriter<GenericRecord>(avroSchema);
+    dataFileWriter = new DataFileWriter<GenericRecord>(datumWriter);
+    dataFileWriter.create(schema, outputStream);
 
     if (enabledStats) {
       this.stats = new TableStatistics(schema);
@@ -89,37 +102,15 @@ public class AvroAppender extends FileAppender {
    */
   @Override
   public void addTuple(Tuple tuple) throws IOException {
-    for (int i = 0; i < schema.size(); ++i) {
+    GenericRecord record = new GenericRecord();
+    int avroIndex = 0;
+    for (int tajoIndex = 0; tajoIndex < schema.size(); ++tajoIndex) {
       Column column = schema.getColumn(i);
       if (enabledStats) {
         stats.analyzeField(i, tuple.get(i));
       }
-      switch (type) {
-        case NULL_TYPE:
-          break;
-        case BOOLEAN:
-          break;
-        case BIT:
-        case INT2:
-        case INT4:
-          break;
-        case INT8:
-          break;
-        case FLOAT4:
-          break;
-        case FLOAT8:
-          break;
-        case CHAR:
-        case TEXT:
-          break;
-        case PROTOBUF:
-        case BLOB:
-        case INET4:
-        case INET6:
-          break;
-        default:
-          throw new RuntimeException("Cannot convert to Avro type: " + type);
-      }
+
+      ++avroIndex;
     }
 
     if (enabledStats) {
@@ -138,6 +129,7 @@ public class AvroAppender extends FileAppender {
    */
   @Override
   public void close() throws IOException {
+    dataFileWriter.close();
   }
 
   /**

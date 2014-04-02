@@ -17,80 +17,69 @@
  */
 /**
  * <p>
- * Provides read and write support for Parquet files. Tajo schemas are
- * converted to Parquet schemas according to the following mapping of Tajo
- * and Parquet types:
+ * Provides read and write support for Avro files. Avro schemas are
+ * converted to Tajo schemas according to the following mapping of Avro
+ * and Tajo types:
  * </p>
  *
  * <table>
  *   <tr>
+ *     <th>Avro type</th>
  *     <th>Tajo type</th>
- *     <th>Parquet type</th>
  *   </tr>
  *   <tr>
+ *     <td>NULL</td>
  *     <td>NULL_TYPE</td>
- *     <td>No type. The field is not encoded in Parquet.</td>
  *   </tr>
  *   <tr>
  *     <td>BOOLEAN</td>
  *     <td>BOOLEAN</td>
  *   </tr>
  *   <tr>
- *     <td>BIT</td>
- *     <td>INT32</td>
- *   </tr>
- *   <tr>
- *     <td>INT2</td>
- *     <td>INT32</td>
- *   </tr>
- *   <tr>
+ *     <td>INT</td>
  *     <td>INT4</td>
- *     <td>INT32</td>
  *   </tr>
  *   <tr>
+ *     <td>LONG</td>
  *     <td>INT8</td>
- *     <td>INT64</td>
  *   </tr>
  *   <tr>
- *     <td>FLOAT4</td>
  *     <td>FLOAT</td>
+ *     <td>FLOAT4</td>
  *   </tr>
  *   <tr>
- *     <td>FLOAT8</td>
  *     <td>DOUBLE</td>
+ *     <td>FLOAT8</td>
  *   </tr>
  *   <tr>
- *     <td>CHAR</td>
- *     <td>BINARY (with OriginalType UTF8)</td>
- *   </tr>
- *   <tr>
- *     <td>TEXT</td>
- *     <td>BINARY (with OriginalType UTF8)</td>
- *   </tr>
- *   <tr>
- *     <td>PROTOBUF</td>
- *     <td>BINARY</td>
- *   </tr>
- *   <tr>
+ *     <td>BYTES</td>
  *     <td>BLOB</td>
- *     <td>BINARY</td>
  *   </tr>
  *   <tr>
- *     <td>INET4</td>
- *     <td>BINARY</td>
+ *     <td>STRING</td>
+ *     <td>TEXT</td>
+ *   </tr>
+ *   <tr>
+ *     <td>FIXED</td>
+ *     <td>BLOB</td>
+ *   </tr>
+ *   <tr>
+ *     <td>RECORD</td>
+ *     <td>Not currently supported</td>
+ *   </tr>
+ *   <tr>
+ *     <td>ENUM</td>
+ *     <td>Not currently supported.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>MAP</td>
+ *     <td>Not currently supported.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>UNION</td>
+ *     <td>Not currently supported.</td>
  *   </tr>
  * </table>
- *
- * <p>
- * Because Tajo fields can be NULL, all Parquet fields are marked as optional.
- * </p>
- *
- * <p>
- * The conversion from Tajo to Parquet is lossy without the original Tajo
- * schema. As a result, Parquet files are read using the Tajo schema saved in
- * the Tajo catalog for the table the Parquet files belong to, which was
- * defined when the table was created.
- * </p>
  */
 
-package org.apache.tajo.storage.parquet;
+package org.apache.tajo.storage.avro;
