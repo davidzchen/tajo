@@ -48,13 +48,6 @@ def parse_opts():
                     help='Description of what changed in this revision '
                          'of the review request when updating an existing '
                          'request')
-  popt.add_argument('-pa', '--patch-available',
-                    action='store_true', dest='patch_available',
-                    required=False,
-                    help='Transition the JIRA status to Patch Available. If '
-                         'its status is already Patch Available, it updates '
-                         'the status of the JIRA issue by transiting its '
-                         'status to Open and Patch Available sequentially.')
   popt.add_argument('-r', '--rb',
                     action='store', dest='reviewboard', required=False,
                     help='Review board that needs to be updated')
@@ -227,15 +220,6 @@ def post_reviewboard_comment(opt, jira, branch_name, rb_url):
   comment = comment + "\n" + rb_url
   jira.add_comment(opt.jira, comment)
 
-# Sets the status of the JIRA ticket to Patch Available.
-def post_patch_available(opt, jira, issue):
-  # If the jira status is already Patch Available (id - 10002)
-  if issue.fields.status.id == '10002':
-    # Cancel (id - 731) the uploaded patch
-    jira.transition_issue(issue, '731')
-    issue = jira.issue(opt.jira)
-  jira.transition_issue(issue, '10002')
-
 def main():
   ''' main(), shut up, pylint '''
   opt = parse_opts()
@@ -270,10 +254,6 @@ def main():
   # Add comment about a request to reviewboard and its url.
   if not opt.skip_reviewboard:
     post_reviewboard_comment(opt, jira, branch_name, rb_url)
-
-  # Transition the jira status to Patch Available
-  if opt.patch_available:
-    post_patch_available(opt, jira, issue)
 
 if __name__ == '__main__':
   sys.exit(main())
