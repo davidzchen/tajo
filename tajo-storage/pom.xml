@@ -176,10 +176,6 @@
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
         </exclusion>
-        <exclusion>
-          <artifactId>avro-mapred</artifactId>
-          <groupId>org.apache.avro</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

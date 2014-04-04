@@ -18,17 +18,23 @@
 
 package org.apache.tajo.storage.avro;
 
+import java.io.FileNotFoundException;
+import java.util.List;
+
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-import org.apache.tajo.catalog.TableMeta;
+import org.apache.tajo.catalog.CatalogConstants;
+import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.statistics.TableStats;
+import org.apache.tajo.catalog.TableMeta;
 import org.apache.tajo.storage.FileAppender;
 import org.apache.tajo.storage.TableStatistics;
 import org.apache.tajo.storage.Tuple;
@@ -41,7 +47,8 @@ import java.io.IOException;
 public class AvroAppender extends FileAppender {
   private TableStatistics stats;
   private Schema avroSchema;
-  private DataFileWriter<GenericWriter> dataFileWriter;
+  private List<Schema.Field> avroFields;
+  private DataFileWriter<GenericRecord> dataFileWriter;
 
   /**
    * Creates a new AvroAppender.
@@ -62,21 +69,22 @@ public class AvroAppender extends FileAppender {
    */
   public void init() throws IOException {
     FileSystem fs = path.getFileSystem(conf);
-    if (!fs.exists(path.getParent()) {
+    if (!fs.exists(path.getParent())) {
       throw new FileNotFoundException(path.toString());
     }
     FSDataOutputStream outputStream = fs.create(path);
 
-    String schemaString = tableMeta.getOption(AVRO_SCHEMA);
+    String schemaString = meta.getOption(CatalogConstants.AVRO_SCHEMA);
     if (schemaString == null) {
       throw new RuntimeException("No Avro schema for table.");
     }
     avroSchema = new Schema.Parser().parse(schemaString);
+    avroFields = avroSchema.getFields();
 
     DatumWriter<GenericRecord> datumWriter =
         new GenericDatumWriter<GenericRecord>(avroSchema);
     dataFileWriter = new DataFileWriter<GenericRecord>(datumWriter);
-    dataFileWriter.create(schema, outputStream);
+    dataFileWriter.create(avroSchema, outputStream);
 
     if (enabledStats) {
       this.stats = new TableStatistics(schema);
@@ -95,6 +103,30 @@ public class AvroAppender extends FileAppender {
     return 0;
   }
 
+  private Object getPrimitive(Tuple tuple, int i, Schema.Type avroType) {
+    switch (avroType) {
+      case NULL:
+        return null;
+      case BOOLEAN:
+        return tuple.getBool(i);
+      case INT:
+        return tuple.getInt4(i);
+      case LONG:
+        return tuple.getInt8(i);
+      case FLOAT:
+        return tuple.getFloat4(i);
+      case DOUBLE:
+        return tuple.getFloat8(i);
+      case BYTES:
+      case FIXED:
+        return tuple.getBytes(i);
+      case STRING:
+        return tuple.getText(i);
+      default:
+        throw new RuntimeException("Unknown primitive type.");
+    }
+  }
+
   /**
    * Write a Tuple to the Avro file.
    *
@@ -102,16 +134,51 @@ public class AvroAppender extends FileAppender {
    */
   @Override
   public void addTuple(Tuple tuple) throws IOException {
-    GenericRecord record = new GenericRecord();
-    int avroIndex = 0;
-    for (int tajoIndex = 0; tajoIndex < schema.size(); ++tajoIndex) {
+    GenericRecord record = new GenericData.Record(avroSchema);
+    for (int i = 0; i < schema.size(); ++i) {
       Column column = schema.getColumn(i);
       if (enabledStats) {
         stats.analyzeField(i, tuple.get(i));
       }
-
-      ++avroIndex;
+      Object value;
+      Schema.Field avroField = avroFields.get(i);
+      Schema.Type avroType = avroField.schema().getType();
+      switch (avroType) {
+        case NULL:
+        case BOOLEAN:
+        case INT:
+        case LONG:
+        case FLOAT:
+        case DOUBLE:
+        case BYTES:
+        case STRING:
+        case FIXED:
+          value = getPrimitive(tuple, i, avroType);
+          break;
+        case RECORD:
+          throw new RuntimeException("Avro RECORD not supported.");
+        case ENUM:
+          throw new RuntimeException("Avro ENUM not supported.");
+        case MAP:
+          throw new RuntimeException("Avro MAP not supported.");
+        case UNION:
+          List<Schema> schemas = avroField.schema().getTypes();
+          if (schemas.size() != 2) {
+            throw new RuntimeException("Avro UNION not supported.");
+          }
+          if (schemas.get(0).getType().equals(Schema.Type.NULL)) {
+            value = getPrimitive(tuple, i, schemas.get(1).getType());
+          } else if (schemas.get(1).getType().equals(Schema.Type.NULL)) {
+            value = getPrimitive(tuple, i, schemas.get(0).getType());
+          } else {
+            throw new RuntimeException("Avro UNION not supported.");
+          }
+        default:
+          throw new RuntimeException("Unknown type.");
+      }
+      record.put(i, value);
     }
+    dataFileWriter.append(record);
 
     if (enabledStats) {
       stats.incrementRow();

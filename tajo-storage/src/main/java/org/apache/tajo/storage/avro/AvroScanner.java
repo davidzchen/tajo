@@ -18,17 +18,29 @@
 
 package org.apache.tajo.storage.avro;
 
+import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
+import org.apache.avro.file.SeekableInput;
+import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.mapred.FsInput;
 import org.apache.avro.io.DatumReader;
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.tajo.catalog.CatalogConstants;
+import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.TableMeta;
+import org.apache.tajo.datum.NullDatum;
+import org.apache.tajo.datum.BlobDatum;
+import org.apache.tajo.datum.DatumFactory;
 import org.apache.tajo.storage.FileScanner;
 import org.apache.tajo.storage.Tuple;
+import org.apache.tajo.storage.VTuple;
 import org.apache.tajo.storage.fragment.FileFragment;
 
 import java.io.IOException;
@@ -37,8 +49,10 @@ import java.io.IOException;
  * FileScanner for reading Avro files
  */
 public class AvroScanner extends FileScanner {
-  Schema avroSchema;
-  DataFileReader<GenericRecord> dataFileReader;
+  private Schema avroSchema;
+  private List<Schema.Field> avroFields;
+  private DataFileReader<GenericRecord> dataFileReader;
+  private int[] projectionMap;
 
   /**
    * Creates a new AvroScanner.
@@ -62,17 +76,52 @@ public class AvroScanner extends FileScanner {
     if (targets == null) {
       targets = schema.toArray();
     }
+    prepareProjection(targets);
 
-    String schemaString = tableMeta.getOption(AVRO_SCHEMA);
+    String schemaString = meta.getOption(CatalogConstants.AVRO_SCHEMA);
     if (schemaString == null) {
       throw new RuntimeException("No Avro schema for table.");
     }
     avroSchema = new org.apache.avro.Schema.Parser().parse(schemaString);
+    avroFields = avroSchema.getFields();
 
     DatumReader<GenericRecord> datumReader =
         new GenericDatumReader<GenericRecord>(avroSchema);
-    dataFileReader = new DataFileReader<GenericRecord>(file, datumReader);
+    SeekableInput input = new FsInput(fragment.getPath(), conf);
+    dataFileReader = new DataFileReader<GenericRecord>(input, datumReader);
     super.init();
+  }
+
+  private void prepareProjection(Column[] targets) {
+    projectionMap = new int[targets.length];
+    for (int i = 0; i < targets.length; ++i) {
+      projectionMap[i] = schema.getColumnId(targets[i].getQualifiedName());
+    }
+  }
+
+  private static String fromAvroString(Object value) {
+    if (value instanceof Utf8) {
+      Utf8 utf8 = (Utf8)value;
+      return utf8.toString();
+    }
+    return value.toString();
+  }
+
+  private static Schema getNonNull(Schema schema) {
+    if (!schema.getType().equals(Schema.Type.UNION)) {
+      return schema;
+    }
+    List<Schema> schemas = schema.getTypes();
+    if (schemas.size() != 2) {
+      return schema;
+    }
+    if (schemas.get(0).getType().equals(Schema.Type.NULL)) {
+      return schemas.get(1);
+    } else if (schemas.get(1).getType().equals(Schema.Type.NULL)) {
+      return schemas.get(0);
+    } else {
+      return schema;
+    }
   }
 
   /**
@@ -89,35 +138,36 @@ public class AvroScanner extends FileScanner {
 
     Tuple tuple = new VTuple(schema.size());
     GenericRecord record = dataFileReader.next();
-    List<Schema.Field> avroFields = avroSchema.getFields();
-    int index = 0;
-    for (int avroIndex = 0; avroIndex < avroFields.size(); ++avroIndex) {
-      Schema.Field avroField = avroFields.get(avroIndex);
-      Schema nonNullAvroSchema = AvroUtil.getNonNull(avroField.schema());
+    for (int i = 0; i < projectionMap.length; ++i) {
+      int columnIndex = projectionMap[i];
+      Schema.Field avroField = avroFields.get(columnIndex);
+      Schema nonNullAvroSchema = getNonNull(avroField.schema());
       Schema.Type avroType = nonNullAvroSchema.getType();
-      Object value = record.get(avroIndex);
+      Object value = record.get(columnIndex);
       switch (avroType) {
+        case NULL:
+          tuple.put(columnIndex, NullDatum.get());
+          break;
         case BOOLEAN:
-          tuple.put(index, DatumFactory.createBool((Boolean)value));
+          tuple.put(columnIndex, DatumFactory.createBool((Boolean)value));
           break;
         case INT:
-          tuple.put(index, DatumFactory.createInt4((Integer)value));
+          tuple.put(columnIndex, DatumFactory.createInt4((Integer)value));
           break;
         case LONG:
-          tuple.put(index, DatumFactory.createInt8((Long)value));
+          tuple.put(columnIndex, DatumFactory.createInt8((Long)value));
           break;
         case FLOAT:
-          tuple.put(index, DatumFactory.createFloat4((Float)value));
+          tuple.put(columnIndex, DatumFactory.createFloat4((Float)value));
           break;
         case DOUBLE:
-          tuple.put(index, DatumFactory.createFloat8((Double)value));
+          tuple.put(columnIndex, DatumFactory.createFloat8((Double)value));
           break;
         case BYTES:
-          tuple.put(index, new BlobDatum((ByteBuffer)value));
+          tuple.put(columnIndex, new BlobDatum((ByteBuffer)value));
           break;
         case STRING:
-          tuple.put(index,
-                    DatumFactory.createText(AvroUtil.fromAvroString(value));
+          tuple.put(columnIndex, DatumFactory.createText(fromAvroString(value)));
           break;
         case RECORD:
           throw new RuntimeException("Avro RECORD not supported.");
@@ -128,12 +178,11 @@ public class AvroScanner extends FileScanner {
         case UNION:
           throw new RuntimeException("Avro UNION not supported.");
         case FIXED:
-          tuple.put(index, new BlobDatum(((GenericFixed)value).bytes()));
+          tuple.put(columnIndex, new BlobDatum(((GenericFixed)value).bytes()));
           break;
         default:
           throw new RuntimeException("Unknown type.");
       }
-      ++index;
     }
     return tuple;
   }
