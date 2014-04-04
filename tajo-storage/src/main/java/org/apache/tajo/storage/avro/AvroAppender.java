@@ -19,6 +19,7 @@
 package org.apache.tajo.storage.avro;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.avro.Schema;
@@ -31,7 +32,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-import org.apache.tajo.catalog.CatalogConstants;
 import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.statistics.TableStats;
 import org.apache.tajo.catalog.TableMeta;
@@ -74,11 +74,7 @@ public class AvroAppender extends FileAppender {
     }
     FSDataOutputStream outputStream = fs.create(path);
 
-    String schemaString = meta.getOption(CatalogConstants.AVRO_SCHEMA);
-    if (schemaString == null) {
-      throw new RuntimeException("No Avro schema for table.");
-    }
-    avroSchema = new Schema.Parser().parse(schemaString);
+    avroSchema = AvroUtil.getAvroSchema(meta, conf);
     avroFields = avroSchema.getFields();
 
     DatumWriter<GenericRecord> datumWriter =

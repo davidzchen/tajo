@@ -19,6 +19,7 @@
 package org.apache.tajo.storage.avro;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -32,7 +33,6 @@ import org.apache.avro.mapred.FsInput;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.tajo.catalog.CatalogConstants;
 import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.TableMeta;
 import org.apache.tajo.datum.NullDatum;
@@ -78,11 +78,7 @@ public class AvroScanner extends FileScanner {
     }
     prepareProjection(targets);
 
-    String schemaString = meta.getOption(CatalogConstants.AVRO_SCHEMA);
-    if (schemaString == null) {
-      throw new RuntimeException("No Avro schema for table.");
-    }
-    avroSchema = new org.apache.avro.Schema.Parser().parse(schemaString);
+    avroSchema = AvroUtil.getAvroSchema(meta, conf);
     avroFields = avroSchema.getFields();
 
     DatumReader<GenericRecord> datumReader =
