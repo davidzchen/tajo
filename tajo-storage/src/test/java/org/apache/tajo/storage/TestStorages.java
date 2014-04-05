@@ -71,17 +71,39 @@ public class TestStorages {
       "  \"fields\": [\n" +
       "    { \"name\": \"col1\", \"type\": \"boolean\" },\n" +
       "    { \"name\": \"col2\", \"type\": \"int\" },\n" +
-      "    { \"name\": \"col3\", \"type\": \"string\" }\n" +
-      "    { \"name\": \"col4\", \"type\": \"int\" }\n" +
-      "    { \"name\": \"col5\", \"type\": \"int\" }\n" +
-      "    { \"name\": \"col6\", \"type\": \"long\" }\n" +
-      "    { \"name\": \"col7\", \"type\": \"float\" }\n" +
-      "    { \"name\": \"col8\", \"type\": \"double\" }\n" +
-      "    { \"name\": \"col9\", \"type\": \"string\" }\n" +
-      "    { \"name\": \"col10\", \"type\": \"bytes\" }\n" +
-      "    { \"name\": \"col11\", \"type\": \"bytes\" }\n" +
-      "    { \"name\": \"col12\", \"type\": \"null\" }\n" +
+      "    { \"name\": \"col3\", \"type\": \"string\" },\n" +
+      "    { \"name\": \"col4\", \"type\": \"int\" },\n" +
+      "    { \"name\": \"col5\", \"type\": \"int\" },\n" +
+      "    { \"name\": \"col6\", \"type\": \"long\" },\n" +
+      "    { \"name\": \"col7\", \"type\": \"float\" },\n" +
+      "    { \"name\": \"col8\", \"type\": \"double\" },\n" +
+      "    { \"name\": \"col9\", \"type\": \"string\" },\n" +
+      "    { \"name\": \"col10\", \"type\": \"bytes\" },\n" +
+      "    { \"name\": \"col11\", \"type\": \"bytes\" },\n" +
+      "    { \"name\": \"col12\", \"type\": \"null\" },\n" +
       "    { \"name\": \"col13\", \"type\": \"bytes\" }\n" +
+      "  ]\n" +
+      "}\n";
+
+  private static String TEST_NULL_HANDLING_TYPES_AVRO_SCHEMA =
+      "{\n" +
+      "  \"type\": \"record\",\n" +
+      "  \"namespace\": \"org.apache.tajo\",\n" +
+      "  \"name\": \"testVariousTypes\",\n" +
+      "  \"fields\": [\n" +
+      "    { \"name\": \"col1\", \"type\": [\"null\", \"boolean\"] },\n" +
+      "    { \"name\": \"col2\", \"type\": [\"null\", \"int\"] },\n" +
+      "    { \"name\": \"col3\", \"type\": [\"null\", \"string\"] },\n" +
+      "    { \"name\": \"col4\", \"type\": [\"null\", \"int\"] },\n" +
+      "    { \"name\": \"col5\", \"type\": [\"null\", \"int\"] },\n" +
+      "    { \"name\": \"col6\", \"type\": [\"null\", \"long\"] },\n" +
+      "    { \"name\": \"col7\", \"type\": [\"null\", \"float\"] },\n" +
+      "    { \"name\": \"col8\", \"type\": [\"null\", \"double\"] },\n" +
+      "    { \"name\": \"col9\", \"type\": [\"null\", \"string\"] },\n" +
+      "    { \"name\": \"col10\", \"type\": [\"null\", \"bytes\"] },\n" +
+      "    { \"name\": \"col11\", \"type\": [\"null\", \"bytes\"] },\n" +
+      "    { \"name\": \"col12\", \"type\": \"null\" },\n" +
+      "    { \"name\": \"col13\", \"type\": [\"null\", \"bytes\"] }\n" +
       "  ]\n" +
       "}\n";
 
@@ -320,6 +342,10 @@ public class TestStorages {
     meta.putOption(StorageConstants.RCFILE_NULL, "\\\\N");
     meta.putOption(StorageConstants.RCFILE_SERDE, TextSerializerDeserializer.class.getName());
     meta.putOption(StorageConstants.SEQUENCEFILE_NULL, "\\");
+    if (storeType == StoreType.AVRO) {
+      meta.putOption(StorageConstants.AVRO_SCHEMA_LITERAL,
+                     TEST_NULL_HANDLING_TYPES_AVRO_SCHEMA);
+    }
 
     Path tablePath = new Path(testDir, "testVariousTypes.data");
     Appender appender = StorageManagerFactory.getStorageManager(conf).getAppender(meta, schema, tablePath);

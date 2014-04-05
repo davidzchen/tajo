@@ -20,6 +20,7 @@ package org.apache.tajo.storage.avro;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.avro.Schema;
@@ -35,6 +36,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.statistics.TableStats;
 import org.apache.tajo.catalog.TableMeta;
+import org.apache.tajo.datum.NullDatum;
 import org.apache.tajo.storage.FileAppender;
 import org.apache.tajo.storage.TableStatistics;
 import org.apache.tajo.storage.Tuple;
@@ -100,6 +102,9 @@ public class AvroAppender extends FileAppender {
   }
 
   private Object getPrimitive(Tuple tuple, int i, Schema.Type avroType) {
+    if (tuple.get(i) instanceof NullDatum) {
+      return null;
+    }
     switch (avroType) {
       case NULL:
         return null;
@@ -115,7 +120,7 @@ public class AvroAppender extends FileAppender {
         return tuple.getFloat8(i);
       case BYTES:
       case FIXED:
-        return tuple.getBytes(i);
+        return ByteBuffer.wrap(tuple.getBytes(i));
       case STRING:
         return tuple.getText(i);
       default:
@@ -169,8 +174,9 @@ public class AvroAppender extends FileAppender {
           } else {
             throw new RuntimeException("Avro UNION not supported.");
           }
+          break;
         default:
-          throw new RuntimeException("Unknown type.");
+          throw new RuntimeException("Unknown type: " + avroType);
       }
       record.put(i, value);
     }

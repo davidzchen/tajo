@@ -21,6 +21,7 @@ package org.apache.tajo.storage;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.tajo.catalog.CatalogConstants;
 import org.apache.tajo.catalog.CatalogUtil;
 import org.apache.tajo.catalog.Options;
 import org.apache.tajo.catalog.Schema;
@@ -51,6 +52,20 @@ public class TestMergeScanner {
   private TajoConf conf;
   AbstractStorageManager sm;
   private static String TEST_PATH = "target/test-data/TestMergeScanner";
+
+  private static String TEST_MULTIPLE_FILES_AVRO_SCHEMA =
+      "{\n" +
+      "  \"type\": \"record\",\n" +
+      "  \"namespace\": \"org.apache.tajo\",\n" +
+      "  \"name\": \"testMultipleFiles\",\n" +
+      "  \"fields\": [\n" +
+      "    { \"name\": \"id\", \"type\": \"int\" },\n" +
+      "    { \"name\": \"file\", \"type\": \"string\" },\n" +
+      "    { \"name\": \"name\", \"type\": \"string\" },\n" +
+      "    { \"name\": \"age\", \"type\": \"long\" }\n" +
+      "  ]\n" +
+      "}\n";
+
   private Path testDir;
   private StoreType storeType;
   private FileSystem fs;
@@ -95,6 +110,10 @@ public class TestMergeScanner {
     Options options = new Options();
     TableMeta meta = CatalogUtil.newTableMeta(storeType, options);
     meta.setOptions(StorageUtil.newPhysicalProperties(storeType));
+    if (storeType == StoreType.AVRO) {
+      meta.putOption(StorageConstants.AVRO_SCHEMA_LITERAL,
+                     TEST_MULTIPLE_FILES_AVRO_SCHEMA);
+    }
 
     Path table1Path = new Path(testDir, storeType + "_1.data");
     Appender appender1 = StorageManagerFactory.getStorageManager(conf).getAppender(meta, schema, table1Path);
