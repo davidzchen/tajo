@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.SeekableInput;
@@ -35,9 +38,13 @@ import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.tajo.catalog.Column;
 import org.apache.tajo.catalog.TableMeta;
+import org.apache.tajo.common.TajoDataTypes;
+import org.apache.tajo.common.TajoDataTypes.DataType;
+import org.apache.tajo.datum.Datum;
 import org.apache.tajo.datum.NullDatum;
 import org.apache.tajo.datum.BlobDatum;
 import org.apache.tajo.datum.DatumFactory;
+import org.apache.tajo.datum.ProtobufDatumFactory;
 import org.apache.tajo.storage.FileScanner;
 import org.apache.tajo.storage.Tuple;
 import org.apache.tajo.storage.VTuple;
@@ -120,6 +127,50 @@ public class AvroScanner extends FileScanner {
     }
   }
 
+  private Datum convertInt(Object value, TajoDataTypes.Type tajoType) {
+    int intValue = (Integer)value;
+    switch (tajoType) {
+      case BIT:
+        return DatumFactory.createBit((byte)(intValue & 0xff));
+      case INT2:
+        return DatumFactory.createInt2((short)intValue);
+      default:
+        return DatumFactory.createInt4(intValue);
+    }
+  }
+
+  private Datum convertBytes(Object value, TajoDataTypes.Type tajoType,
+                             DataType dataType) {
+    ByteBuffer buffer = (ByteBuffer)value;
+    byte[] bytes = new byte[buffer.capacity()];
+    buffer.get(bytes, 0, bytes.length);
+    switch (tajoType) {
+      case INET4:
+        return DatumFactory.createInet4(bytes);
+      case PROTOBUF:
+        try {
+          ProtobufDatumFactory factory =
+              ProtobufDatumFactory.get(dataType.getCode());
+          Message.Builder builder = factory.newBuilder();
+          builder.mergeFrom(bytes);
+          return factory.createDatum(builder);
+        } catch (InvalidProtocolBufferException e) {
+          throw new RuntimeException(e);
+        }
+      default:
+        return new BlobDatum(bytes);
+    }
+  }
+
+  private Datum convertString(Object value, TajoDataTypes.Type tajoType) {
+    switch (tajoType) {
+      case CHAR:
+        return DatumFactory.createChar(fromAvroString(value));
+      default:
+        return DatumFactory.createText(fromAvroString(value));
+    }
+  }
+
   /**
    * Reads the next Tuple from the Avro file.
    *
@@ -136,10 +187,21 @@ public class AvroScanner extends FileScanner {
     GenericRecord record = dataFileReader.next();
     for (int i = 0; i < projectionMap.length; ++i) {
       int columnIndex = projectionMap[i];
+      Object value = record.get(columnIndex);
+      if (value == null) {
+        tuple.put(columnIndex, NullDatum.get());
+        continue;
+      }
+
+      // Get Avro type.
       Schema.Field avroField = avroFields.get(columnIndex);
       Schema nonNullAvroSchema = getNonNull(avroField.schema());
       Schema.Type avroType = nonNullAvroSchema.getType();
-      Object value = record.get(columnIndex);
+
+      // Get Tajo type.
+      Column column = schema.getColumn(columnIndex);
+      DataType dataType = column.getDataType();
+      TajoDataTypes.Type tajoType = dataType.getType();
       switch (avroType) {
         case NULL:
           tuple.put(columnIndex, NullDatum.get());
@@ -148,7 +210,7 @@ public class AvroScanner extends FileScanner {
           tuple.put(columnIndex, DatumFactory.createBool((Boolean)value));
           break;
         case INT:
-          tuple.put(columnIndex, DatumFactory.createInt4((Integer)value));
+          tuple.put(columnIndex, convertInt(value, tajoType));
           break;
         case LONG:
           tuple.put(columnIndex, DatumFactory.createInt8((Long)value));
@@ -160,10 +222,10 @@ public class AvroScanner extends FileScanner {
           tuple.put(columnIndex, DatumFactory.createFloat8((Double)value));
           break;
         case BYTES:
-          tuple.put(columnIndex, new BlobDatum((ByteBuffer)value));
+          tuple.put(columnIndex, convertBytes(value, tajoType, dataType));
           break;
         case STRING:
-          tuple.put(columnIndex, DatumFactory.createText(fromAvroString(value)));
+          tuple.put(columnIndex, convertString(value, tajoType));
           break;
         case RECORD:
           throw new RuntimeException("Avro RECORD not supported.");
