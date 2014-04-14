@@ -188,9 +188,11 @@ public class AvroAppender extends FileAppender {
   }
 
   /**
+   * Flushes the current state of the file.
    */
   @Override
   public void flush() throws IOException {
+    dataFileWriter.flush();
   }
 
   /**
