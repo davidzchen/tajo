@@ -25,14 +25,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.tajo.catalog.CatalogConstants;
+import org.apache.tajo.storage.StorageConstants;
 import org.apache.tajo.catalog.TableMeta;
 
 public class AvroUtil {
   public static Schema getAvroSchema(TableMeta meta, Configuration conf)
       throws IOException {
-    String schemaLiteral = meta.getOption(CatalogConstants.AVRO_SCHEMA_LITERAL);
-    String schemaUrl = meta.getOption(CatalogConstants.AVRO_SCHEMA_URL);
+    String schemaLiteral = meta.getOption(StorageConstants.AVRO_SCHEMA_LITERAL);
+    String schemaUrl = meta.getOption(StorageConstants.AVRO_SCHEMA_URL);
     if (schemaLiteral == null && schemaUrl == null) {
       throw new RuntimeException("No Avro schema for table.");
     }
