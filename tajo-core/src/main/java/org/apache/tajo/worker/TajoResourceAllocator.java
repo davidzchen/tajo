@@ -97,7 +97,7 @@ public class TajoResourceAllocator extends AbstractResourceAllocator {
     //TODO consider disk slot
 
     ClusterResourceSummary clusterResource = workerContext.getClusterResource();
-    int clusterSlots = clusterResource == null ? 0 : clusterResource.getTotalMemoryMB() / memoryMBPerTask;
+    int clusterSlots = clusterResource == null ? 0 : clusterResource.getTotalMemoryMb() / memoryMBPerTask;
     clusterSlots =  Math.max(1, clusterSlots - 1); // reserve query master slot
     LOG.info("CalculateNumberRequestContainer - Number of Tasks=" + numTasks +
       ", Number of Cluster Slots=" + clusterSlots);
@@ -268,8 +268,8 @@ public class TajoResourceAllocator extends AbstractResourceAllocator {
       float requiredDiskSlots = tajoConf.getFloatVar(TajoConf.ConfVars.TASK_DEFAULT_DISK);
 
       WorkerResourceAllocationRequest request = WorkerResourceAllocationRequest.newBuilder()
-          .setMinMemoryMBPerContainer(requiredMemoryMB)
-          .setMaxMemoryMBPerContainer(requiredMemoryMB)
+          .setMinMemoryMbPerContainer(requiredMemoryMB)
+          .setMaxMemoryMbPerContainer(requiredMemoryMB)
           .setNumContainers(event.getRequiredNum())
           .setResourceRequestPriority(!event.isLeafQuery() ?
               ResourceRequestPriority.MEMORY : ResourceRequestPriority.DISK)
@@ -329,7 +329,7 @@ public class TajoResourceAllocator extends AbstractResourceAllocator {
 
 
           WorkerResource workerResource = new WorkerResource();
-          workerResource.setMemoryMB(eachAllocatedResource.getAllocatedMemoryMB());
+          workerResource.setMemoryMB(eachAllocatedResource.getAllocatedMemoryMb());
           workerResource.setDiskSlots(eachAllocatedResource.getAllocatedDiskSlots());
 
           Worker worker = new Worker(null, workerResource,

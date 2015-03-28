@@ -141,9 +141,9 @@ public class WorkerHeartbeatService extends AbstractService {
 
       systemInfo = ServerStatusProto.System.newBuilder()
           .setAvailableProcessors(workerCpuCoreNum)
-          .setFreeMemoryMB(0)
-          .setMaxMemoryMB(0)
-          .setTotalMemoryMB(getTotalMemoryMB())
+          .setFreeMemoryMb(0)
+          .setMaxMemoryMb(0)
+          .setTotalMemoryMb(getTotalMemoryMB())
           .build();
     }
 
@@ -168,7 +168,7 @@ public class WorkerHeartbeatService extends AbstractService {
                 context.getTaskRunnerManager() == null ? 1 : context.getTaskRunnerManager().getNumTasks())
             .setSystem(systemInfo)
             .setDiskSlots(workerDiskSlots)
-            .setMemoryResourceMB(workerMemoryMB)
+            .setMemoryResourceMb(workerMemoryMB)
             .setJvmHeap(jvmHeap)
             .setQueryMasterMode(PrimitiveProtos.BoolProto.newBuilder().setValue(context.isQueryMasterMode()))
             .setTaskRunnerMode(PrimitiveProtos.BoolProto.newBuilder().setValue(context.isTaskRunnerMode()))

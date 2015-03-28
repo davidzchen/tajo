@@ -198,8 +198,8 @@ public class TajoWorkerResourceManager extends CompositeService implements Worke
 
     WorkerResourceAllocationRequest.Builder builder = WorkerResourceAllocationRequest.newBuilder();
     builder.setQueryId(queryId.getProto());
-    builder.setMaxMemoryMBPerContainer(queryMasterDefaultMemoryMB);
-    builder.setMinMemoryMBPerContainer(queryMasterDefaultMemoryMB);
+    builder.setMaxMemoryMbPerContainer(queryMasterDefaultMemoryMB);
+    builder.setMinMemoryMbPerContainer(queryMasterDefaultMemoryMB);
     builder.setMaxDiskSlotPerContainer(queryMasterDefaultDiskSlot);
     builder.setMinDiskSlotPerContainer(queryMasterDefaultDiskSlot);
     builder.setResourceRequestPriority(ResourceRequestPriority.MEMORY);
@@ -282,8 +282,8 @@ public class TajoWorkerResourceManager extends CompositeService implements Worke
           if (LOG.isDebugEnabled()) {
             LOG.debug("allocateWorkerResources:" +
               (new QueryId(resourceRequest.request.getQueryId())) +
-              ", requiredMemory:" + resourceRequest.request.getMinMemoryMBPerContainer() +
-              "~" + resourceRequest.request.getMaxMemoryMBPerContainer() +
+              ", requiredMemory:" + resourceRequest.request.getMinMemoryMbPerContainer() +
+              "~" + resourceRequest.request.getMaxMemoryMbPerContainer() +
               ", requiredContainers:" + resourceRequest.request.getNumContainers() +
               ", requiredDiskSlots:" + resourceRequest.request.getMinDiskSlotPerContainer() +
               "~" + resourceRequest.request.getMaxDiskSlotPerContainer() +
@@ -315,7 +315,7 @@ public class TajoWorkerResourceManager extends CompositeService implements Worke
                 allocatedResources.add(WorkerAllocatedResource.newBuilder()
                   .setContainerId(containerIdProto)
                   .setConnectionInfo(allocatedResource.worker.getConnectionInfo().getProto())
-                  .setAllocatedMemoryMB(allocatedResource.allocatedMemoryMB)
+                  .setAllocatedMemoryMb(allocatedResource.allocatedMemoryMB)
                   .setAllocatedDiskSlots(allocatedResource.allocatedDiskSlots)
                   .build());
 
@@ -365,8 +365,8 @@ public class TajoWorkerResourceManager extends CompositeService implements Worke
         Collections.shuffle(randomWorkers);
 
         int numContainers = resourceRequest.request.getNumContainers();
-        int minMemoryMB = resourceRequest.request.getMinMemoryMBPerContainer();
-        int maxMemoryMB = resourceRequest.request.getMaxMemoryMBPerContainer();
+        int minMemoryMB = resourceRequest.request.getMinMemoryMbPerContainer();
+        int maxMemoryMB = resourceRequest.request.getMaxMemoryMbPerContainer();
         float diskSlot = Math.max(resourceRequest.request.getMaxDiskSlotPerContainer(),
           resourceRequest.request.getMinDiskSlotPerContainer());
 
@@ -436,8 +436,8 @@ public class TajoWorkerResourceManager extends CompositeService implements Worke
         int numContainers = resourceRequest.request.getNumContainers();
         float minDiskSlots = resourceRequest.request.getMinDiskSlotPerContainer();
         float maxDiskSlots = resourceRequest.request.getMaxDiskSlotPerContainer();
-        int memoryMB = Math.max(resourceRequest.request.getMaxMemoryMBPerContainer(),
-          resourceRequest.request.getMinMemoryMBPerContainer());
+        int memoryMB = Math.max(resourceRequest.request.getMaxMemoryMbPerContainer(),
+          resourceRequest.request.getMinMemoryMbPerContainer());
 
         int liveWorkerSize = randomWorkers.size();
         Set<Integer> insufficientWorkers = new HashSet<Integer>();

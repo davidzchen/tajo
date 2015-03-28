@@ -29,9 +29,9 @@ import "tajo_protos.proto";
 package hadoop.yarn;
 
 message NodeHeartbeat {
-  required WorkerConnectionInfoProto connectionInfo = 1;
-  optional ServerStatusProto serverStatus = 2;
-  optional string statusMessage = 3;
+  required WorkerConnectionInfoProto connection_info = 1;
+  optional ServerStatusProto server_status = 2;
+  optional string status_message = 3;
 }
 
 service TajoResourceTrackerProtocolService {

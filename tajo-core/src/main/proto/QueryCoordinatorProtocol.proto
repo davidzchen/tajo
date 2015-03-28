@@ -33,114 +33,115 @@ import "ContainerProtocol.proto";
 package hadoop.yarn;
 
 message ServerStatusProto {
-    message System {
-        required int32 availableProcessors = 1;
-        required int32 freeMemoryMB = 2;
-        required int32 maxMemoryMB = 3;
-        required int32 totalMemoryMB = 4;
-    }
-    message Disk {
-        required string absolutePath = 1;
-        required int64 totalSpace = 2;
-        required int64 freeSpace = 3;
-        required int64 usableSpace = 4;
-    }
+  message System {
+    required int32 available_processors = 1;
+    required int32 free_memory_mb = 2;
+    required int32 max_memory_mb = 3;
+    required int32 total_memory_mb = 4;
+  }
+  message Disk {
+    required string absolute_path = 1;
+    required int64 total_space = 2;
+    required int64 free_space = 3;
+    required int64 usable_space = 4;
+  }
 
-    message JvmHeap {
-        required int64 maxHeap = 1;
-        required int64 totalHeap = 2;
-        required int64 freeHeap = 3;
-    }
+  message JvmHeap {
+    required int64 max_heap = 1;
+    required int64 total_heap = 2;
+    required int64 free_heap = 3;
+  }
 
-    required System system = 1;
-    required float diskSlots = 2;
-    required int32 memoryResourceMB = 3;
-    repeated Disk disk = 4;
-    required int32 runningTaskNum = 5;
-    required JvmHeap jvmHeap = 6;
-    required BoolProto queryMasterMode = 7;
-    required BoolProto taskRunnerMode = 8;
+  required System system = 1;
+  required float disk_slots = 2;
+  required int32 memory_resource_mb = 3;
+  repeated Disk disk = 4;
+  required int32 running_task_num = 5;
+  required JvmHeap jvm_heap = 6;
+  required BoolProto query_master_mode = 7;
+  required BoolProto task_runner_mode = 8;
 }
 
 message TajoHeartbeat {
-  required WorkerConnectionInfoProto connectionInfo = 1;
-  optional QueryIdProto queryId = 2;
+  required WorkerConnectionInfoProto connection_info = 1;
+  optional QueryIdProto query_id = 2;
   optional QueryState state = 3;
-  optional TableDescProto resultDesc = 4;
-  optional string statusMessage = 5;
-  optional float queryProgress = 6;
+  optional TableDescProto result_desc = 4;
+  optional string status_message = 5;
+  optional float query_progress = 6;
 }
 
 message TajoHeartbeatResponse {
   message ResponseCommand {
-      required string command = 1;
-      repeated string params = 2;
+    required string command = 1;
+    repeated string params = 2;
   }
-  required BoolProto heartbeatResult = 1;
-  required ClusterResourceSummary clusterResourceSummary = 2;
-  optional ResponseCommand responseCommand = 3;
+  required BoolProto heartbeat_result = 1;
+  required ClusterResourceSummary cluster_resource_summary = 2;
+  optional ResponseCommand response_command = 3;
 }
 
 message ClusterResourceSummary {
-  required int32 numWorkers = 1;
-  required int32 totalDiskSlots = 2;
-  required int32 totalCpuCoreSlots = 3;
-  required int32 totalMemoryMB = 4;
+  required int32 num_workers = 1;
+  required int32 total_disk_slots = 2;
+  required int32 total_cpu_core_slots = 3;
+  required int32 total_memory_mb = 4;
 
-  required int32 totalAvailableDiskSlots = 5;
-  required int32 totalAvailableCpuCoreSlots = 6;
-  required int32 totalAvailableMemoryMB = 7;
+  required int32 total_available_disk_slots = 5;
+  required int32 total_available_cpu_core_slots = 6;
+  required int32 total_available_memory_mb = 7;
 }
 
 enum ResourceRequestPriority {
-    MEMORY = 1;
-    DISK = 2;
+  MEMORY = 1;
+  DISK = 2;
 }
 
 message WorkerResourceAllocationRequest {
-    required QueryIdProto queryId = 1;
-    required ResourceRequestPriority resourceRequestPriority = 2;
+  required QueryIdProto query_id = 1;
+  required ResourceRequestPriority resource_request_priority = 2;
 
-    required int32 numContainers = 3;
+  required int32 num_containers = 3;
 
-    required int32 maxMemoryMBPerContainer = 4;
-    required int32 minMemoryMBPerContainer = 5;
+  required int32 max_memory_mb_per_container = 4;
+  required int32 min_memory_mb_per_container = 5;
 
-    required float maxDiskSlotPerContainer = 6;
-    required float minDiskSlotPerContainer = 7;
+  required float max_disk_slot_per_container = 6;
+  required float min_disk_slot_per_container = 7;
 }
 
 message WorkerResourceProto {
-    required WorkerConnectionInfoProto connectionInfo = 1;
-    required int32 memoryMB = 2 ;
-    required float diskSlots = 3;
+  required WorkerConnectionInfoProto connection_info = 1;
+  required int32 memory_mb = 2 ;
+  required float disk_slots = 3;
 }
 
 message WorkerResourcesRequest {
-    repeated WorkerResourceProto workerResources = 1;
+  repeated WorkerResourceProto worker_resources = 1;
 }
 
 message WorkerResourceReleaseRequest {
-    required ExecutionBlockIdProto executionBlockId = 1;
-    repeated TajoContainerIdProto containerIds = 2;
+  required ExecutionBlockIdProto execution_block_id = 1;
+  repeated TajoContainerIdProto container_ids = 2;
 }
 
 message WorkerAllocatedResource {
-    required TajoContainerIdProto containerId = 1;
-    required WorkerConnectionInfoProto connectionInfo = 2;
+  required TajoContainerIdProto container_id = 1;
+  required WorkerConnectionInfoProto connection_info = 2;
 
-    required int32 allocatedMemoryMB = 3;
-    required float allocatedDiskSlots = 4;
+  required int32 allocated_memory_mb = 3;
+  required float allocated_disk_slots = 4;
 }
 
 message WorkerResourceAllocationResponse {
-    required QueryIdProto queryId = 1;
-    repeated WorkerAllocatedResource workerAllocatedResource = 2;
+  required QueryIdProto query_id = 1;
+  repeated WorkerAllocatedResource worker_allocated_resource = 2;
 }
 
 service QueryCoordinatorProtocolService {
   rpc heartbeat(TajoHeartbeat) returns (TajoHeartbeatResponse);
-  rpc allocateWorkerResources(WorkerResourceAllocationRequest) returns (WorkerResourceAllocationResponse);
+  rpc allocateWorkerResources(WorkerResourceAllocationRequest)
+      returns (WorkerResourceAllocationResponse);
   rpc releaseWorkerResource(WorkerResourceReleaseRequest) returns (BoolProto);
   rpc getAllWorkerResource(NullProto) returns (WorkerResourcesRequest);
 }

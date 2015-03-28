@@ -188,7 +188,7 @@ public class TajoResourceTracker extends AbstractService implements TajoResource
     workerResource.setTaskRunnerMode(taskRunnerMode);
 
     if(request.getServerStatus() != null) {
-      workerResource.setMemoryMB(request.getServerStatus().getMemoryResourceMB());
+      workerResource.setMemoryMB(request.getServerStatus().getMemoryResourceMb());
       workerResource.setCpuCoreSlots(request.getServerStatus().getSystem().getAvailableProcessors());
       workerResource.setDiskSlots(request.getServerStatus().getDiskSlots());
       workerResource.setNumRunningTasks(request.getServerStatus().getRunningTaskNum());
@@ -236,10 +236,10 @@ public class TajoResourceTracker extends AbstractService implements TajoResource
         .setNumWorkers(rmContext.getWorkers().size())
         .setTotalCpuCoreSlots(totalCpuCoreSlots)
         .setTotalDiskSlots(totalDiskSlots)
-        .setTotalMemoryMB(totalMemoryMB)
+        .setTotalMemoryMb(totalMemoryMB)
         .setTotalAvailableCpuCoreSlots(totalAvailableCpuCoreSlots)
         .setTotalAvailableDiskSlots(totalAvailableDiskSlots)
-        .setTotalAvailableMemoryMB(totalAvailableMemoryMB)
+        .setTotalAvailableMemoryMb(totalAvailableMemoryMB)
         .build();
   }
 }

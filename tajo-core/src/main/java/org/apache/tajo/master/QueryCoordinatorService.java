@@ -149,7 +149,7 @@ public class QueryCoordinatorService extends AbstractService {
         WorkerResourceProto.Builder workerResource = WorkerResourceProto.newBuilder();
 
         workerResource.setConnectionInfo(worker.getConnectionInfo().getProto());
-        workerResource.setMemoryMB(resource.getMemoryMB());
+        workerResource.setMemoryMb(resource.getMemoryMB());
         workerResource.setDiskSlots(resource.getDiskSlots());
 
         builder.addWorkerResources(workerResource);

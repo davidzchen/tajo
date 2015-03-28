@@ -33,7 +33,8 @@ service TajoMasterClientProtocolService {
   // Session APIs
   rpc createSession(CreateSessionRequest) returns (CreateSessionResponse);
   rpc removeSession(SessionIdProto) returns (BoolProto);
-  rpc updateSessionVariables(UpdateSessionVariableRequest) returns (SessionUpdateResponse);
+  rpc updateSessionVariables(UpdateSessionVariableRequest)
+      returns (SessionUpdateResponse);
   rpc existSessionVariable(SessionedStringProto) returns (BoolProto);
   rpc getSessionVariable(SessionedStringProto) returns (StringProto);
   rpc getAllSessionVariables(SessionIdProto) returns (KeyValueSetProto);
@@ -42,7 +43,8 @@ service TajoMasterClientProtocolService {
   rpc submitQuery(QueryRequest) returns (SubmitQueryResponse);
   rpc updateQuery(QueryRequest) returns (UpdateQueryResponse);
   rpc getQueryResult(GetQueryResultRequest) returns (GetQueryResultResponse);
-  rpc getQueryResultData(GetQueryResultDataRequest) returns (GetQueryResultDataResponse);
+  rpc getQueryResultData(GetQueryResultDataRequest)
+      returns (GetQueryResultDataResponse);
 
   // Query And Resource Management APIs
   rpc getQueryStatus(GetQueryStatusRequest) returns (GetQueryStatusResponse);

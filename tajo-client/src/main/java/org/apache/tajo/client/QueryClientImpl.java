@@ -602,11 +602,11 @@ public class QueryClientImpl implements QueryClient {
   public QueryHistoryProto getQueryHistory(final QueryId queryId) throws ServiceException {
     final QueryInfoProto queryInfo = getQueryInfo(queryId);
 
-    if (queryInfo.getHostNameOfQM() == null || queryInfo.getQueryMasterClientPort() == 0) {
+    if (queryInfo.getQueryMasterHostName() == null || queryInfo.getQueryMasterClientPort() == 0) {
       return null;
     }
     InetSocketAddress qmAddress = new InetSocketAddress(
-        queryInfo.getHostNameOfQM(), queryInfo.getQueryMasterClientPort());
+        queryInfo.getQueryMasterHostName(), queryInfo.getQueryMasterClientPort());
 
     return new ServerCallable<QueryHistoryProto>(connection.connPool, qmAddress,
         QueryMasterClientProtocol.class, false, true) {

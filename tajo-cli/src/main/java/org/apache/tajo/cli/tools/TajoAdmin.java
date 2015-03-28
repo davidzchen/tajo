@@ -364,8 +364,8 @@ public class TajoAdmin {
     for (WorkerResourceInfo worker : workers) {
       TajoProtos.WorkerConnectionInfoProto connInfo = worker.getConnectionInfo();
       String workerHost = String.format("%s:%d", connInfo.getHost(), connInfo.getPeerRpcPort());
-      String mem = String.format("%d/%d", worker.getUsedMemoryMB(),
-          worker.getMemoryMB());
+      String mem = String.format("%d/%d", worker.getUsedMemoryMb(),
+          worker.getMemoryMb());
       String disk = String.format("%.2f/%.2f", worker.getUsedDiskSlots(),
           worker.getDiskSlots());
       String heap = String.format("%d/%d MB", worker.getFreeHeap()/1024/1024,

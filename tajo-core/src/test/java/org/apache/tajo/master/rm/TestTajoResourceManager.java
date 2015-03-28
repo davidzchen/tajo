@@ -62,9 +62,9 @@ public class TestTajoResourceManager {
     for(int i = 0; i < numWorkers; i++) {
       ServerStatusProto.System system = ServerStatusProto.System.newBuilder()
           .setAvailableProcessors(1)
-          .setFreeMemoryMB(workerMemoryMB)
-          .setMaxMemoryMB(workerMemoryMB)
-          .setTotalMemoryMB(workerMemoryMB)
+          .setFreeMemoryMb(workerMemoryMB)
+          .setMaxMemoryMb(workerMemoryMB)
+          .setTotalMemoryMb(workerMemoryMB)
           .build();
 
       ServerStatusProto.JvmHeap jvmHeap = ServerStatusProto.JvmHeap.newBuilder()
@@ -88,7 +88,7 @@ public class TestTajoResourceManager {
           .setQueryMasterMode(queryMasterMode ? BOOL_TRUE : BOOL_FALSE)
           .setTaskRunnerMode(BOOL_TRUE)
           .setDiskSlots(workerDiskSlots)
-          .setMemoryResourceMB(workerMemoryMB)
+          .setMemoryResourceMb(workerMemoryMB)
           .setJvmHeap(jvmHeap)
           .setSystem(system)
           .addAllDisk(disks)
@@ -145,8 +145,8 @@ public class TestTajoResourceManager {
           .setQueryId(queryId.getProto())
           .setMaxDiskSlotPerContainer(diskSlots)
           .setMinDiskSlotPerContainer(diskSlots)
-          .setMinMemoryMBPerContainer(minMemory)
-          .setMaxMemoryMBPerContainer(maxMemory)
+          .setMinMemoryMbPerContainer(minMemory)
+          .setMaxMemoryMbPerContainer(maxMemory)
           .build();
 
       final CountDownLatch barrier = new CountDownLatch(1);
@@ -187,7 +187,7 @@ public class TestTajoResourceManager {
 
       for(WorkerAllocatedResource eachResource: response.getWorkerAllocatedResourceList()) {
         assertTrue(
-            eachResource.getAllocatedMemoryMB() >= minMemory &&  eachResource.getAllocatedMemoryMB() <= maxMemory);
+            eachResource.getAllocatedMemoryMb() >= minMemory &&  eachResource.getAllocatedMemoryMb() <= maxMemory);
         containerIds.add(eachResource.getContainerId());
       }
 
@@ -235,8 +235,8 @@ public class TestTajoResourceManager {
             .setQueryId(queryId.getProto())
             .setMaxDiskSlotPerContainer(diskSlots)
             .setMinDiskSlotPerContainer(diskSlots)
-            .setMinMemoryMBPerContainer(minMemory)
-            .setMaxMemoryMBPerContainer(maxMemory)
+            .setMinMemoryMbPerContainer(minMemory)
+            .setMaxMemoryMbPerContainer(maxMemory)
             .build();
 
         final CountDownLatch barrier = new CountDownLatch(1);
@@ -259,7 +259,7 @@ public class TestTajoResourceManager {
         for(WorkerAllocatedResource eachResource:
             TestTajoResourceManager.this.response.getWorkerAllocatedResourceList()) {
           assertTrue(
-              eachResource.getAllocatedMemoryMB() >= minMemory &&  eachResource.getAllocatedMemoryMB() <= maxMemory);
+              eachResource.getAllocatedMemoryMb() >= minMemory &&  eachResource.getAllocatedMemoryMb() <= maxMemory);
           tajoWorkerResourceManager.releaseWorkerResource(eachResource.getContainerId());
         }
 
@@ -314,8 +314,8 @@ public class TestTajoResourceManager {
           .setQueryId(queryId.getProto())
           .setMaxDiskSlotPerContainer(maxDiskSlots)
           .setMinDiskSlotPerContainer(minDiskSlots)
-          .setMinMemoryMBPerContainer(memoryMB)
-          .setMaxMemoryMBPerContainer(memoryMB)
+          .setMinMemoryMbPerContainer(memoryMB)
+          .setMaxMemoryMbPerContainer(memoryMB)
           .build();
 
       final CountDownLatch barrier = new CountDownLatch(1);
@@ -396,8 +396,8 @@ public class TestTajoResourceManager {
           .setQueryId(queryId.getProto())
           .setMaxDiskSlotPerContainer(maxDiskSlots)
           .setMinDiskSlotPerContainer(minDiskSlots)
-          .setMinMemoryMBPerContainer(memoryMB)
-          .setMaxMemoryMBPerContainer(memoryMB)
+          .setMinMemoryMbPerContainer(memoryMB)
+          .setMaxMemoryMbPerContainer(memoryMB)
           .build();
 
       final CountDownLatch barrier = new CountDownLatch(1);

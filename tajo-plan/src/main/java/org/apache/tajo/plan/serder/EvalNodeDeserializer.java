@@ -178,16 +178,16 @@ public class EvalNodeDeserializer {
 
         FunctionDesc funcDesc = null;
         try {
-          funcDesc = new FunctionDesc(funcProto.getFuncion());
+          funcDesc = new FunctionDesc(funcProto.getFunction());
           if (type == EvalType.FUNCTION) {
             GeneralFunction instance = (GeneralFunction) funcDesc.newInstance();
-            current = new GeneralFunctionEval(context, new FunctionDesc(funcProto.getFuncion()), instance, params);
+            current = new GeneralFunctionEval(context, new FunctionDesc(funcProto.getFunction()), instance, params);
 
           } else if (type == EvalType.AGG_FUNCTION || type == EvalType.WINDOW_FUNCTION) {
             AggFunction instance = (AggFunction) funcDesc.newInstance();
             if (type == EvalType.AGG_FUNCTION) {
               AggregationFunctionCallEval aggFunc =
-                  new AggregationFunctionCallEval(new FunctionDesc(funcProto.getFuncion()), instance, params);
+                  new AggregationFunctionCallEval(new FunctionDesc(funcProto.getFunction()), instance, params);
 
               PlanProto.AggFunctionEvalSpec aggFunctionProto = protoNode.getAggFunction();
               aggFunc.setIntermediatePhase(aggFunctionProto.getIntermediatePhase());
@@ -201,7 +201,7 @@ public class EvalNodeDeserializer {
               WinFunctionEvalSpec windowFuncProto = protoNode.getWinFunction();
 
               WindowFunctionEval winFunc =
-                  new WindowFunctionEval(new FunctionDesc(funcProto.getFuncion()), instance, params,
+                  new WindowFunctionEval(new FunctionDesc(funcProto.getFunction()), instance, params,
                       convertWindowFrame(windowFuncProto.getWindowFrame()));
 
               if (windowFuncProto.getSortSpecCount() > 0) {
@@ -215,8 +215,8 @@ public class EvalNodeDeserializer {
         } catch (ClassNotFoundException cnfe) {
           String functionName = "Unknown";
           DataType[] parameterTypes = new DataType[0];
-          if (funcProto.getFuncion() != null && funcProto.getFuncion().getSignature() != null) {
-            FunctionSignatureProto funcSignatureProto = funcProto.getFuncion().getSignature();
+          if (funcProto.getFunction() != null && funcProto.getFunction().getSignature() != null) {
+            FunctionSignatureProto funcSignatureProto = funcProto.getFunction().getSignature();
             
             if (funcSignatureProto.hasName()) {
               functionName = funcSignatureProto.getName();
